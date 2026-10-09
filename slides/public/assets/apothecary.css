@@ -1,0 +1,42 @@
+/* The Apothecary: deck styles layered over the Reveal theme. */
+:root {
+  --potion:#6b3fa0;
+  --potion-deep:#2b1d3a;
+  --elixir:#2f8f6f;
+  --brass:#c08a2e;
+  --accent:var(--potion);
+  --r-link-color:var(--potion);
+  --r-link-color-hover:var(--potion);
+  --r-selection-background-color:#dccbef;
+}
+
+/* Title and chapter slides: dark violet, brass accents. */
+.reveal .title-slide, .reveal .chapter-slide { color:#f3ecdf; }
+.reveal :is(.title-slide,.chapter-slide) :is(h1,h2) { color:#f3ecdf; }
+.reveal :is(.title-slide,.chapter-slide) :is(em,strong) { color:var(--brass); font-style:normal; }
+.reveal .title-slide h1 { font-size:2.4em; }
+.reveal .chapter-slide h2 { font-size:2em; }
+.reveal .chapter-slide p { color:#cbbfdc; }
+
+/* Exercise slides carry a brass rule and a tag for the exercise directory. */
+.reveal .exercise-slide { border-top:12px solid var(--brass); }
+.reveal .exercise-tag {
+  display:inline-block; padding:.1em .5em; border-radius:.3em;
+  background:var(--brass); color:#fff; font:600 .6em var(--r-code-font);
+}
+
+/* Live Laminar demos. */
+.reveal .laminar-demo {
+  font-size:.7em; padding:.6em; border:2px dashed var(--rule); border-radius:.4em;
+  min-height:3em; text-align:left;
+}
+.reveal .laminar-demo[data-state="mounted"] { border-style:solid; border-color:var(--potion); }
+.reveal .laminar-demo .demo-pending { color:var(--muted); font-family:var(--r-code-font); margin:0; }
+.reveal .laminar-demo[data-state="missing"] .demo-pending::after { content:" (not built)"; }
+.reveal .laminar-demo-frame { display:flex; flex-direction:column; gap:.3em; min-width:0; }
+/* The value line keeps its height while empty, so the first update causes no layout shift. */
+.reveal .demo-value {
+  display:block; min-height:1.3em; font:.55em/1.3 var(--r-code-font); color:var(--elixir);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.reveal .laminar-demo :is(input,select,button) { font:inherit; }

@@ -1,0 +1,8 @@
+node_modules/
+dist/
+dist-display/
+.live-preview.json
+.tiger-editor.json
+.scala-build/
+.bsp/
+public/assets/widgets/

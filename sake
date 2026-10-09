@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# Runs the Sakefile command runner (tooling/sake) with scala-cli. Windows: sake.bat
+SAKE_HOME="$(cd "$(dirname "$0")" && pwd)"
+exec scala-cli run --quiet "$SAKE_HOME/tooling/sake" -- "$@"
