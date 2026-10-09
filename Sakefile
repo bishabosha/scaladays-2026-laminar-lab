@@ -66,6 +66,17 @@ reset-all:
     git clean -fdqx -- :(glob)exercises/*/solution/** widgets/_solutions
     remove exercises/out {{widgets_out}} notebooks/apothecary.notebook.sc.cache
 
+# (maintainers) Replay the solutions branch on top of main, then return to main
+sync-solutions:
+    git switch main
+    git rebase main solutions
+    git switch main
+
+# (maintainers) Push main and the rebased solutions branch
+push: sync-solutions
+    git push origin main
+    git push --force-with-lease origin solutions
+
 # Fetch the tiger-site-gen and notebook.sc submodules
 fetch:
     git submodule sync
