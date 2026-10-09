@@ -4,3 +4,4 @@
 # Answers are fetched from the solutions branch: ./sake solution <ex>, ./sake widget-solution <name>
 exercises/*/solution/
 widgets/_solutions/
+.sake/

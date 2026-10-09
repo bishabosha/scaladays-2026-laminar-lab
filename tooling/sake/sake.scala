@@ -1,5 +1,6 @@
-//> using scala 3.8.3
+//> using scala 3.9.0
 //> using jvm 17
+//> using dep io.github.bishabosha::flagged::1.0.0
 
 /* sake: a small, portable command runner (in the spirit of `just`) for Sakefiles.
  *
@@ -20,23 +21,28 @@
  *       {{WATCH ? --watch}}                    expands to `--watch` only when WATCH is non-empty
  *
  * Built-in variables: {{root}} (the Sakefile's directory), {{os}} (windows, mac or linux).
- * Built-in commands: echo, mkdir, copy, remove, fail, fail-if-exists, sake (run a recipe),
+ * Built-in commands: echo, mkdir, copy, remove, fail, fail-if-exists, fail-if-missing, sake (run a recipe),
  *   `for X in dirs <path> [except a b]: <command using {{X}}>`, and
  *   `serve <dir> <port> [page]`: a static file server that runs alongside the following
  *   commands; once they finish, sake keeps serving until Ctrl-C.
  *
  * Usage: sake [--list] [--dry-run] [recipe [args...]]...   args are positional or NAME=value
+ *   (`sake --help` for details; command-line parsing is flagged's)
+ *
+ * The launchers (`sake`, `sake.bat`) compile this file with Scala Native when clang is available,
+ * and otherwise run it on the JVM, so it sticks to APIs both platforms provide (no java.time, no
+ * com.sun.net.httpserver, no System.console, no regex lookaround).
  */
 
-import java.net.{InetSocketAddress, URLDecoder}
-import java.nio.charset.StandardCharsets.UTF_8
+import java.io.{BufferedReader, InputStreamReader}
+import java.net.{InetAddress, ServerSocket, Socket, URLDecoder}
+import java.nio.charset.StandardCharsets.ISO_8859_1
 import java.nio.file.{Files, Path, Paths, StandardCopyOption}
-import java.time.{Instant, ZoneOffset}
-import java.time.format.DateTimeFormatter
-import java.util.concurrent.{CountDownLatch, Executors}
-import com.sun.net.httpserver.{HttpExchange, HttpServer}
+import java.util.concurrent.CountDownLatch
 import scala.jdk.CollectionConverters.*
 import scala.util.control.NoStackTrace
+
+import flagged.*
 
 case class SakeError(message: String, exitCode: Int = 1) extends Exception(message), NoStackTrace
 
@@ -54,7 +60,7 @@ case class Sakefile(path: Path, vars: Map[String, String], recipes: List[Recipe]
 object Parse:
   private val Variable = """([A-Za-z_][\w-]*)\s*:=\s*(.*)""".r
   private val Attribute = """\[dir:\s*(.+?)\s*\]""".r
-  private val Header = """([A-Za-z_][\w-]*)((?:\s+[A-Za-z_]\w*(?:="[^"]*")?)*)\s*:(?!=)(.*)""".r
+  private val Header = """([A-Za-z_][\w-]*)((?:\s+[A-Za-z_]\w*(?:="[^"]*")?)*)\s*:(.*)""".r
   private val ParamPattern = """([A-Za-z_]\w*)(?:="([^"]*)")?""".r
 
   def apply(path: Path): Sakefile =
@@ -123,6 +129,10 @@ object Platform:
     if os.startsWith("windows") then "windows" else if os.contains("mac") then "mac" else "linux"
   }
   val windows = name == "windows"
+  /** Colour the echoed commands when the launcher found a terminal (`SAKE_COLOR=1`, set by
+   *  `./sake` for an interactive stderr); `NO_COLOR` turns it off.
+   */
+  val colour: Boolean = sys.env.get("SAKE_COLOR").contains("1") && !sys.env.contains("NO_COLOR")
   private val exts =
     if windows then sys.env.getOrElse("PATHEXT", ".COM;.EXE;.BAT;.CMD").toLowerCase.split(';').toList.filter(_.nonEmpty)
     else Nil
@@ -149,7 +159,7 @@ class Runner(file: Sakefile, dryRun: Boolean):
   private var done = Set.empty[String]
 
   private def note(text: String): Unit =
-    System.err.println(if System.console() != null then s"\u001b[1;35m$text\u001b[0m" else text)
+    System.err.println(if Platform.colour then s"\u001b[1;35m$text\u001b[0m" else text)
 
   /** Bind `args` (positional, or NAME=value) to the recipe's parameters. */
   def bind(recipe: Recipe, args: List[String]): Map[String, String] =
@@ -221,6 +231,9 @@ class Runner(file: Sakefile, dryRun: Boolean):
       case "fail-if-exists" =>
         if args.isEmpty then arity(1)
         if Files.exists(path(args.head)) then throw SakeError(if args.size > 1 then args.tail.mkString(" ") else s"${args.head} already exists")
+      case "fail-if-missing" =>
+        if args.isEmpty then arity(1)
+        if !Files.exists(path(args.head)) then throw SakeError(if args.size > 1 then args.tail.mkString(" ") else s"${args.head} does not exist")
       case "sake" =>
         if args.isEmpty then throw SakeError("sake expects a recipe name")
         run(args.head, args.tail)
@@ -257,6 +270,9 @@ class Runner(file: Sakefile, dryRun: Boolean):
       Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING)
 
 /** A static file server for local development: no caching, Last-Modified for reload polling. */
+/** A static file server for local development: no caching, Last-Modified for reload polling.
+ *  Plain sockets, so it works the same on the JVM and with Scala Native.
+ */
 object Serve:
   @volatile private var running = 0
   private val types = Map(
@@ -269,35 +285,72 @@ object Serve:
     val base = root.toAbsolutePath.normalize
     if !Files.isDirectory(base) then throw SakeError(s"serve: not a directory: $root")
     val server =
-      try HttpServer.create(InetSocketAddress("127.0.0.1", port), 0)
+      try ServerSocket(port, 50, InetAddress.getByName("127.0.0.1"))
       catch case _: java.net.BindException => throw SakeError(s"serve: port $port is in use (is another `sake` still running?)")
-    server.createContext("/", exchange => respond(base, exchange))
-    server.setExecutor(Executors.newCachedThreadPool { r => val t = Thread(r); t.setDaemon(true); t })
-    server.start()
+    daemon {
+      while true do
+        val socket = server.accept()
+        daemon(respond(base, socket))
+    }
     running += 1
     System.err.println(s"serving $root at http://127.0.0.1:$port${if page.startsWith("/") then page else "/" + page}")
 
-  private def respond(base: Path, exchange: HttpExchange): Unit =
+  private def daemon(body: => Unit): Unit =
+    val thread = Thread(() => body)
+    thread.setDaemon(true)
+    thread.start()
+
+  /** One request per connection: `GET` or `HEAD` of a file under `base`. */
+  private def respond(base: Path, socket: Socket): Unit =
     try
-      val rel = URLDecoder.decode(exchange.getRequestURI.getRawPath, UTF_8).stripPrefix("/")
-      val target = base.resolve(rel).normalize
-      val file = if Files.isDirectory(target) then target.resolve("index.html") else target
-      val headers = exchange.getResponseHeaders
-      val head = exchange.getRequestMethod == "HEAD"
-      if !file.startsWith(base) || !Files.isRegularFile(file) || file.getFileName.toString.startsWith(".") then
-        exchange.sendResponseHeaders(404, -1)
-      else
-        val ext = file.getFileName.toString.split('.').last.toLowerCase
-        headers.set("Content-Type", types.getOrElse(ext, "application/octet-stream"))
-        headers.set("Cache-Control", "no-store")
-        headers.set("Last-Modified", DateTimeFormatter.RFC_1123_DATE_TIME.format(
-          Files.getLastModifiedTime(file).toInstant.atOffset(ZoneOffset.UTC)))
-        if head then exchange.sendResponseHeaders(200, -1)
-        else
-          val bytes = Files.readAllBytes(file)
-          exchange.sendResponseHeaders(200, bytes.length)
-          exchange.getResponseBody.write(bytes)
-    finally exchange.close()
+      val in = BufferedReader(InputStreamReader(socket.getInputStream, ISO_8859_1))
+      val requestLine = Option(in.readLine()).getOrElse("")
+      while Option(in.readLine()).exists(_.nonEmpty) do () // skip the request headers
+      val out = socket.getOutputStream
+      def send(status: String, headers: Seq[(String, String)], body: Array[Byte]): Unit =
+        val head = (s"HTTP/1.1 $status" +: (headers :+ ("Connection" -> "close")).map((k, v) => s"$k: $v"))
+          .mkString("", "\r\n", "\r\n\r\n")
+        out.write(head.getBytes(ISO_8859_1))
+        if body.nonEmpty then out.write(body) // Scala Native's sockets reject empty writes
+        out.flush()
+      requestLine.split(' ') match
+        case Array(method @ ("GET" | "HEAD"), target, _*) =>
+          val rawPath = target.takeWhile(c => c != '?' && c != '#')
+          val rel = URLDecoder.decode(rawPath, "UTF-8").stripPrefix("/")
+          val resolved = base.resolve(rel).normalize
+          val file = if Files.isDirectory(resolved) then resolved.resolve("index.html") else resolved
+          if !file.startsWith(base) || !Files.isRegularFile(file) || file.getFileName.toString.startsWith(".") then
+            send("404 Not Found", Seq("Content-Length" -> "0"), Array.emptyByteArray)
+          else
+            val ext = file.getFileName.toString.split('.').last.toLowerCase
+            val bytes = Files.readAllBytes(file)
+            send("200 OK", Seq(
+              "Content-Type" -> types.getOrElse(ext, "application/octet-stream"),
+              "Content-Length" -> bytes.length.toString,
+              "Cache-Control" -> "no-store",
+              "Last-Modified" -> httpDate(Files.getLastModifiedTime(file).toMillis)
+            ), if method == "HEAD" then Array.emptyByteArray else bytes)
+        case _ => send("405 Method Not Allowed", Seq("Content-Length" -> "0"), Array.emptyByteArray)
+    catch case _: java.io.IOException => () // the browser went away
+    finally socket.close()
+
+  /** RFC 1123 date, e.g. `Fri, 09 Oct 2026 10:32:59 GMT` (no java.time on Scala Native). */
+  def httpDate(millis: Long): String =
+    val days = Math.floorDiv(millis, 86400000L)
+    val secs = Math.floorMod(millis, 86400000L) / 1000
+    // Civil date from days since 1970-01-01 (Howard Hinnant's algorithm).
+    val z = days + 719468
+    val era = Math.floorDiv(z, 146097)
+    val doe = z - era * 146097
+    val yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365
+    val doy = doe - (365 * yoe + yoe / 4 - yoe / 100)
+    val mp = (5 * doy + 2) / 153
+    val day = doy - (153 * mp + 2) / 5 + 1
+    val month = if mp < 10 then mp + 3 else mp - 9
+    val year = yoe + era * 400 + (if month <= 2 then 1 else 0)
+    val weekday = Seq("Thu", "Fri", "Sat", "Sun", "Mon", "Tue", "Wed")(Math.floorMod(days, 7L).toInt)
+    val monthName = Seq("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")(month.toInt - 1)
+    f"$weekday, $day%02d $monthName $year ${secs / 3600}%02d:${secs / 60 % 60}%02d:${secs % 60}%02d GMT"
 
   /** Keep serving after the recipe's commands finish, until the process is interrupted. */
   def awaitIfRunning(): Unit =
@@ -330,14 +383,25 @@ def invocations(file: Sakefile, args: List[String]): List[(String, List[String])
         .map(_._1)
       (name, taken) :: invocations(file, rest.drop(taken.size))
 
+@cmd(name = "sake", help = """Run recipes from the nearest Sakefile (in this directory or a parent).
+With no recipe, lists them. Each recipe takes its arguments positionally or as NAME=value,
+e.g. `sake widget potions WATCH=1`; recipe arguments that start with '-' go after `--`.""")
+case class SakeArgs(
+    @opt(short = 'l', help = "List the Sakefile's recipes") list: Boolean = false,
+    @opt(short = 'n', help = "Print each command, and the program it would run, without running it")
+    dryRun: Boolean = false,
+    @opt(positional = true, help = "Recipes to run, each followed by its arguments")
+    recipes: List[String] = Nil
+) derives Parser.Command
+
 @main def sake(args: String*): Unit =
-  val (flags, rest) = args.toList.partition(a => a == "--list" || a == "-l" || a == "--dry-run" || a == "-n")
+  val options = Flagged.parseOrExit[SakeArgs](args)
   try
     val file = Parse(find(Paths.get("")))
-    if rest.isEmpty || flags.exists(f => f == "--list" || f == "-l") then list(file)
+    if options.recipes.isEmpty || options.list then list(file)
     else
-      val runner = Runner(file, dryRun = flags.exists(f => f == "--dry-run" || f == "-n"))
-      for (name, recipeArgs) <- invocations(file, rest) do runner.run(name, recipeArgs)
+      val runner = Runner(file, dryRun = options.dryRun)
+      for (name, recipeArgs) <- invocations(file, options.recipes) do runner.run(name, recipeArgs)
       Serve.awaitIfRunning()
   catch
     case e: SakeError =>

@@ -6,6 +6,8 @@ potions since 1642, are going digital, and you'll build their shop in
 many rules, a cellar backed by a slow and grumpy oracle, and finally widgets for the
 [notebook.sc](https://github.com/bishabosha/notebook.sc) notebook.
 
+Follow the slides on your own screen: <https://bishabosha.github.io/apothecary/>
+
 ## Getting started
 
 We'll do this together at the start of the lab, on your own laptop. You need a terminal,
@@ -138,6 +140,10 @@ widget, refresh the notebook in the browser.
   `./sake fetch-https`.
 - **Scala CLI says it's outdated, or munit is outdated**: harmless, ignore it.
 - **`./sake: Permission denied`** (macOS/Linux): run `chmod +x sake` once.
+- **"sake: compiling natively with Scala Native"**: the first `./sake` compiles itself into a
+  fast native binary when `clang` is installed (cached in `.sake/`). Without `clang`, or if
+  that fails, it runs on the JVM instead: slower to start, but otherwise the same. To skip
+  the native build, set `SAKE_JVM=1`.
 - **Exercise 04 shows no confetti**: the confetti library loads from esm.sh, so it needs
   the internet.
 - **I broke everything**: `./sake reset-all` puts the exercises, widgets and notebook
@@ -167,6 +173,20 @@ Timings and speaker notes are in each slide's source, in
 To show capstone answers in the notebook, run `./sake widget-solution <name>` while it
 runs, then refresh. After a rehearsal, run `./sake reset-all` to get back to the
 starting state.
+
+### Publishing the slides
+
+The deck is hosted with the blog, at <https://bishabosha.github.io/apothecary/>.
+
+```sh
+./sake publish-deck ../bishabosha.github.io   # path to your checkout of the blog's site
+```
+
+This builds the static deck with every live demo (fetching the answers from the
+`solutions` branch) and copies it into the checkout: `apothecary/` (without
+`speaker-notes.html`) and one
+`static/reveal_<hash>/` directory, nothing else. Commit and push that repository to
+publish. Old `static/reveal_<hash>/` directories from earlier publishes can be deleted.
 
 ### Answers and the solutions branch
 

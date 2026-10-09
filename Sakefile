@@ -125,6 +125,27 @@ slides-display:
     scala-cli run . -- build --display
     scala-cli run . -- serve --display
 
+# Build the static deck, with every live demo, into slides/dist-display/
+deck-build:
+    sake ex-demos
+    sake widget potions
+    remove slides/dist-display
+    sake slides-build
+
+[dir: slides]
+slides-build:
+    scala-cli run . -- build --display
+
+# (maintainers) Copy the built deck into DEST, a checkout of the site that hosts it (e.g.
+# ../bishabosha.github.io): adds DEST/apothecary/ (without the notes page) and DEST/static/reveal_<hash>/
+publish-deck DEST:
+    fail-if-missing {{DEST}}/index.html {{DEST}} is not a site checkout (no index.html there)
+    sake deck-build
+    copy slides/dist-display/apothecary {{DEST}}/apothecary
+    remove {{DEST}}/apothecary/speaker-notes.html
+    copy slides/dist-display/static {{DEST}}/static
+    echo Copied the deck into {{DEST}}: commit and push that repository to publish /apothecary/
+
 # Start a new widget in widgets/NAME from the template
 new-widget NAME:
     fail-if-exists widgets/{{NAME}} widgets/{{NAME}} already exists
