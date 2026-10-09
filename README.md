@@ -6,57 +6,72 @@ potions since 1642, are going digital, and you'll build their shop in
 many rules, a cellar backed by a slow and grumpy oracle, and finally widgets for the
 [notebook.sc](https://github.com/bishabosha/notebook.sc) notebook.
 
-Everything runs through one command, `./sake`, which works the same on macOS, Linux and
-Windows. On Windows, type `sake` in Command Prompt or `.\sake.bat` in PowerShell
-instead of `./sake`. Run `./sake` on its own to list every command.
+## Getting started
 
-## Before the lab
+We'll do this together at the start of the lab, on your own laptop. You need a terminal,
+a browser, Git and the internet. Everything else is downloaded as you go: Scala CLI and
+Mill fetch their own Java, so you don't need to install one.
 
-Please do this at home, on good Wi-Fi. The first run downloads Scala, Scala.js,
-Laminar, Mill and notebook.sc, which is a lot for conference Wi-Fi.
+Every lab command is `./sake <something>`. **On Windows**, type `sake <something>` in
+Command Prompt, or `.\sake.bat <something>` in PowerShell, instead.
 
-1. **Install**
-   - [Git](https://git-scm.com/downloads)
-   - [Scala CLI](https://scala-cli.virtuslab.org/install), version 1.12 or newer
-   - a JDK, version 17 or newer (for example from [Adoptium](https://adoptium.net))
-   - a modern browser
-   - optional: [Node.js](https://nodejs.org) 18 or newer, used only to run exercise 2's tests
+### Step 1: install Scala CLI and Node.js
 
-2. **Clone the lab, with its submodules**
+- **Scala CLI**: follow <https://scala-cli.virtuslab.org/install>
+- **Node.js** (runs exercise 2's tests): follow <https://nodejs.org/en/download>
 
-   ```sh
-   git clone --recurse-submodules git@github.com:bishabosha/scaladays-2026-laminar-lab.git
-   cd scaladays-2026-laminar-lab
-   ```
+Skip either if you have it already: `scala-cli version` and `node --version` print a
+version. Open a new terminal afterwards, so it finds the new commands.
 
-   No SSH key set up for GitHub? Clone over HTTPS, then fetch the submodules over HTTPS
-   too:
+### Step 2: download the lab
 
-   ```sh
-   git clone https://github.com/bishabosha/scaladays-2026-laminar-lab.git
-   cd scaladays-2026-laminar-lab
-   ./sake fetch-https
-   ```
+```sh
+git clone --recurse-submodules git@github.com:bishabosha/scaladays-2026-laminar-lab.git
+cd scaladays-2026-laminar-lab
+```
 
-3. **Download and compile everything**
+**No SSH key for GitHub?** (The clone says *Permission denied (publickey)*.) Use HTTPS
+instead, then fetch the two submodules over HTTPS too:
 
-   ```sh
-   ./sake prepare
-   ```
+```sh
+git clone https://github.com/bishabosha/scaladays-2026-laminar-lab.git
+cd scaladays-2026-laminar-lab
+./sake fetch-https
+```
 
-   It ends with *"All set, apprentice: see you at the lab!"*. The first run takes a while.
+### Step 3: check your setup
 
-4. **Check that it works**
+```sh
+./sake check
+```
 
-   ```sh
-   ./sake ex 00-setup
-   ```
+The first run downloads Scala, Scala.js, Laminar, Mill and a Java runtime, so give it a
+few minutes. It finishes with **Ready, apprentice**.
 
-   Open <http://127.0.0.1:8000/?ex=00-setup>, type your name, and the shop greets you.
-   Press Ctrl-C to stop.
+### Step 4: start building everything else (and leave it running)
 
-If something fails, see [Troubleshooting](#troubleshooting), or bring it to the lab and
-we'll sort it out in the first five minutes.
+Open a **second terminal**, go to the lab directory again, and run:
+
+```sh
+./sake prepare
+```
+
+This compiles every exercise, the capstone widgets and the notebook for the capstone.
+Leave it running while the lab carries on; it can take ten minutes or more on conference
+Wi-Fi. It finishes with **All set, apprentice**.
+
+### Step 5: say hello
+
+Back in the first terminal:
+
+```sh
+./sake ex 00-setup
+```
+
+Open <http://127.0.0.1:8000/?ex=00-setup> in your browser and type your name: the shop
+greets you. You're ready. Press Ctrl-C to stop it, and wait for exercise 1.
+
+Something went wrong? See [Troubleshooting](#troubleshooting), or raise your hand.
 
 ## During the lab
 
@@ -74,7 +89,7 @@ peek at.
 
 ```sh
 ./sake ex 01-cauldron           # build, serve on http://127.0.0.1:8000, rebuild on save
-./sake test 02-potion-form      # exercise 2's validation tests (needs Node.js)
+./sake test 02-potion-form      # exercise 2's validation tests
 ./sake solution 01-cauldron     # copy the answer into exercises/01-cauldron/solution
 ./sake ex-solution 01-cauldron  # ...and run it
 ./sake reset-ex 01-cauldron     # start the exercise over (discards your changes)
@@ -122,6 +137,7 @@ widget, refresh the notebook in the browser.
 - **A submodule failed to clone**: you probably have no GitHub SSH key. Use
   `./sake fetch-https`.
 - **Scala CLI says it's outdated, or munit is outdated**: harmless, ignore it.
+- **`./sake: Permission denied`** (macOS/Linux): run `chmod +x sake` once.
 - **Exercise 04 shows no confetti**: the confetti library loads from esm.sh, so it needs
   the internet.
 - **I broke everything**: `./sake reset-all` puts the exercises, widgets and notebook

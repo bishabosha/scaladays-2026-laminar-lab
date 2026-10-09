@@ -21,7 +21,7 @@ prepare: publish-plugin-api
     sake widgets
     sake prepare-notebook
     echo
-    echo All set, apprentice: see you at the lab!
+    echo All set, apprentice: every exercise, widget and the notebook are built.
 
 # Compile notebook.sc (server, kernel and UI) so `sake notebook` starts quickly
 [dir: modules/notebook.sc]

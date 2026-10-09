@@ -16,6 +16,8 @@
 4. **Dragon's breath** needs a licence no.
 5. ★ A problem summary
 
+Done when `./sake test 02-potion-form` passes
+
 {{end-stack}}
 
 {{demo 02-potion-form/app}}
