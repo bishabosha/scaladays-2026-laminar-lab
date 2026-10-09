@@ -1,0 +1,2 @@
+*.bat text eol=crlf
+sake text eol=lf

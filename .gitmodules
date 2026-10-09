@@ -1,0 +1,6 @@
+[submodule "modules/tiger-site-gen"]
+	path = modules/tiger-site-gen
+	url = git@github.com:bishabosha/tiger-site-gen.git
+[submodule "modules/notebook.sc"]
+	path = modules/notebook.sc
+	url = git@github.com:bishabosha/notebook.sc.git
