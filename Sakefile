@@ -63,7 +63,7 @@ reset-widget NAME:
 reset-all:
     git checkout HEAD -- exercises widgets notebooks
     git clean -fdq -- exercises widgets notebooks
-    git clean -fdqx -- :(glob)exercises/*/solution widgets/_solutions
+    git clean -fdqx -- :(glob)exercises/*/solution/** widgets/_solutions
     remove exercises/out {{widgets_out}} notebooks/apothecary.notebook.sc.cache
 
 # Fetch the tiger-site-gen and notebook.sc submodules
