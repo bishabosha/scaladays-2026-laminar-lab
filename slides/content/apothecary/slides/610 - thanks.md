@@ -4,7 +4,7 @@
 
 # Thank *you*
 
-laminar.dev · github.com/bishabosha/notebook.sc
+laminar.dev · github.com/bishabosha/scaladays-2026-laminar-lab
 
 Now go and brew something
 

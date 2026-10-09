@@ -40,6 +40,10 @@ fetch:
     git submodule sync
     git submodule update --init --recursive
 
+# Fetch the submodules over HTTPS instead (no SSH key needed): after `git clone https://…`
+fetch-https:
+    git -c url.https://github.com/.insteadOf=git@github.com: submodule update --init --recursive
+
 # Publish tiger-site-gen to the local Ivy repository
 [dir: modules/tiger-site-gen]
 publish-tiger:
