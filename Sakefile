@@ -13,6 +13,21 @@ check: publish-plugin-api
     echo
     echo Ready, apprentice. Now run: ./sake ex 00-setup   (Windows: sake ex 00-setup)
 
+# Before the lab, on good Wi-Fi: download and compile everything the lab uses
+prepare: publish-plugin-api
+    scala-cli version
+    for E in dirs exercises except entry out: sake ex-build {{E}}
+    scala-cli compile --test exercises/project.scala apothecary exercises/entry exercises/02-potion-form/start exercises/02-potion-form/tests
+    sake widgets
+    sake prepare-notebook
+    echo
+    echo All set, apprentice: see you at the lab!
+
+# Compile notebook.sc (server, kernel and UI) so `sake notebook` starts quickly
+[dir: modules/notebook.sc]
+prepare-notebook:
+    ./mill server.compile server.forkEnv
+
 # Work on an exercise: builds on every save and serves it (see also ex-solution)
 ex EX VARIANT="start":
     @mkdir exercises/out/{{EX}}
@@ -99,19 +114,14 @@ publish-tiger-full: fetch publish-tiger
 publish-plugin-api:
     ./mill plugin-api.publishLocal
 
-# Install the deck's browser dependencies
-[dir: slides]
-slides-deps:
-    npm ci
-
 # Live deck with Content studio: http://127.0.0.1:8123/apothecary/
 [dir: slides]
-slides: slides-deps
+slides:
     scala-cli run . -- dev
 
 # Static deck build, served at http://127.0.0.1:8127/apothecary/
 [dir: slides]
-slides-display: slides-deps
+slides-display:
     scala-cli run . -- build --display
     scala-cli run . -- serve --display
 
