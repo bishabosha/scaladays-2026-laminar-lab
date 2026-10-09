@@ -16,6 +16,7 @@
  *   recipe NAME WATCH="": dep1 dep2            parameters (with optional defaults), then dependencies
  *       command arg "quoted arg" {{NAME}}      body lines are indented; each line is one command
  *       @command                               `@` hides the echoed command line
+ *       -command                               `-` carries on if the command fails
  *       {{WATCH ? --watch}}                    expands to `--watch` only when WATCH is non-empty
  *
  * Built-in variables: {{root}} (the Sakefile's directory), {{os}} (windows, mac or linux).
@@ -163,10 +164,12 @@ class Runner(file: Sakefile, dryRun: Boolean):
   /** Run a recipe from the command line (or `sake` in a body): dependencies once, then the body. */
   def run(name: String, args: List[String]): Unit =
     val recipe = file.recipe(name)
-    val values = bind(recipe, args)
+    val base = Map("root" -> file.root.toString, "os" -> Platform.name) ++ file.vars
+    // Defaults may refer to variables: `FROM="{{solutions}}"`.
+    val values = bind(recipe, args).map((k, v) => k -> interpolate(v, base))
     for d <- recipe.deps if !done(d) do run(d, Nil)
     done += name
-    val scope = Map("root" -> file.root.toString, "os" -> Platform.name) ++ file.vars ++ values
+    val scope = base ++ values
     val cwd = recipe.dir.fold(file.root)(d => file.root.resolve(interpolate(d, scope)).normalize)
     for line <- recipe.body do
       try execute(line.text, scope, cwd)
@@ -183,15 +186,22 @@ class Runner(file: Sakefile, dryRun: Boolean):
   private val ForDirs = """for\s+([A-Za-z_]\w*)\s+in\s+dirs\s+(\S+)(?:\s+except\s+([^:]+))?\s*:\s*(.+)""".r
 
   private def execute(raw: String, scope: Map[String, String], cwd: Path): Unit =
-    val quiet = raw.startsWith("@")
-    val text = raw.stripPrefix("@").trim
+    val prefix = raw.takeWhile(c => c == '@' || c == '-')
+    val quiet = prefix.contains('@')
+    val text = raw.drop(prefix.length).trim
+    if prefix.contains('-') then
+      try execute(text, scope, cwd, quiet)
+      catch case e: SakeError => note(s"  (ignored: ${e.message})")
+    else execute(text, scope, cwd, quiet)
+
+  private def execute(text: String, scope: Map[String, String], cwd: Path, quiet: Boolean): Unit =
     text match
       case ForDirs(v, dir, except, command) =>
         val base = cwd.resolve(interpolate(dir, scope))
         val skip = Option(except).toList.flatMap(_.trim.split("\\s+"))
         val dirs = Files.list(base).iterator.asScala.filter(Files.isDirectory(_)).map(_.getFileName.toString)
           .filterNot(d => d.startsWith(".") || skip.contains(d)).toList.sorted
-        for d <- dirs do execute(command, scope + (v -> d), cwd)
+        for d <- dirs do execute(command, scope + (v -> d), cwd, quiet)
       case _ =>
         // A word that is a lone {{X ? text}} disappears when X is empty.
         val words = Parse.words(text).flatMap { w =>

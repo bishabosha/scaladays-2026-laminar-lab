@@ -8,6 +8,7 @@ slides **and** use in a notebook.sc notebook.
 ./sake widget cauldron            # builds cauldron/
 ./sake widget cauldron WATCH=1    # ...and rebuilds on every save
 ./sake widgets                    # builds every widget
+./sake reset-widget cauldron      # starts it over (deletes it if you made it)
 ```
 
 On Windows, run `sake` instead of `./sake`. Run `./sake` on its own to list every command.
@@ -55,7 +56,8 @@ oracle and `Shop(...)` (the shop's styles). Every widget can use them: `import a
 | your own | `./sake new-widget mixer` | e.g. an `Rgb` | `potions/` |
 
 The lab notebook (`notebooks/apothecary.notebook.sc`, run with `./sake notebook`) has a
-section wired up for each. The answers live in `_solutions/`.
+section wired up for each. The answers live on the `solutions` branch; `widget-solution`
+fetches one into `_solutions/` and builds it.
 
 After rebuilding, the deck reloads by itself (`./sake slides`). In the notebook, refresh the
 browser. Plugin *displays* (like the chart) appear in the notebook's inspector: click the

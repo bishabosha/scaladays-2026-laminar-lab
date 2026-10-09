@@ -15,12 +15,13 @@ cd scaladays-2026-laminar-lab
 
 No SSH key? `git clone https://github.com/bishabosha/scaladays-2026-laminar-lab.git`, then `./sake fetch-https`
 
-Every exercise has a `start/` and a `solution/`: `./sake ex 01-cauldron solution`
+Peek at an answer: `./sake ex-solution 01-cauldron` (from the `solutions` branch)
 
-Stuck? Raise your hand: helpers are walking around.
+Start over: `./sake reset-ex 01-cauldron`. Stuck? Raise your hand.
 
 ## Speaker notes
 
 Five minutes. Everyone must see the hello page before we move on.
+Resets: `reset-ex <ex>`, `reset-widget <name>`; `reset-all` (rehearsal clean-up) discards everything.
 The HTTPS route: clone without --recurse-submodules, then `./sake fetch-https` (Windows: `sake fetch-https`).
 Dependencies should already be cached if they followed the pre-lab email.

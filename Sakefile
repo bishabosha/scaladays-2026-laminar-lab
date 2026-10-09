@@ -2,6 +2,8 @@
 # Syntax: tooling/sake/sake.scala
 
 widgets_out := slides/public/assets/widgets
+# The answers live on this branch, not on main
+solutions := origin/solutions
 exercises_port := 8000
 
 # Check your setup: builds exercise 00, then run `sake ex 00-setup` to see it
@@ -11,7 +13,7 @@ check: publish-plugin-api
     echo
     echo Ready, apprentice. Now run: ./sake ex 00-setup   (Windows: sake ex 00-setup)
 
-# Work on an exercise: builds on every save and serves it (VARIANT=solution for the answer)
+# Work on an exercise: builds on every save and serves it (see also ex-solution)
 ex EX VARIANT="start":
     @mkdir exercises/out/{{EX}}
     serve exercises {{exercises_port}} /?ex={{EX}}
@@ -26,14 +28,43 @@ ex-build EX VARIANT="start":
 test EX VARIANT="start":
     scala-cli test exercises/project.scala apothecary exercises/entry exercises/{{EX}}/{{VARIANT}} exercises/{{EX}}/tests
 
+# Peek at an exercise's answer: copies exercises/EX/solution from the solutions branch
+solution EX FROM="{{solutions}}":
+    -@git fetch -q origin solutions
+    git restore --source={{FROM}} --worktree -- exercises/{{EX}}/solution
+
+# Run an exercise's answer, fetched from the solutions branch
+ex-solution EX:
+    sake solution {{EX}}
+    sake ex {{EX}} solution
+
 # Build every exercise solution as a slide demo: {{demo 01-cauldron/app}}
 ex-demos:
     for E in dirs exercises except entry out 00-setup: sake ex-demo {{E}}
 
 # Build one exercise solution as a slide demo
 ex-demo EX:
+    sake solution {{EX}}
     @mkdir {{widgets_out}}/{{EX}}
     scala-cli --power package exercises/project.scala apothecary exercises/entry exercises/{{EX}}/solution -o {{widgets_out}}/{{EX}}/main.js -f
+
+# Start an exercise over: discards your changes to exercises/EX/start
+reset-ex EX:
+    git checkout HEAD -- exercises/{{EX}}/start
+    git clean -fdq -- exercises/{{EX}}/start
+
+# Start a widget over: discards your changes to widgets/NAME (deletes it if you made it)
+reset-widget NAME:
+    git clean -fdq -- widgets/{{NAME}}
+    -git checkout HEAD -- widgets/{{NAME}}
+    remove {{widgets_out}}/{{NAME}}
+
+# Put the whole lab back to how it starts: discards ALL your work in exercises, widgets and notebooks
+reset-all:
+    git checkout HEAD -- exercises widgets notebooks
+    git clean -fdq -- exercises widgets notebooks
+    git clean -fdqx -- :(glob)exercises/*/solution widgets/_solutions
+    remove exercises/out {{widgets_out}} notebooks/apothecary.notebook.sc.cache
 
 # Fetch the tiger-site-gen and notebook.sc submodules
 fetch:
@@ -84,8 +115,10 @@ widget NAME WATCH="":
     @mkdir {{widgets_out}}/{{NAME}}
     scala-cli --power package widgets/project.scala apothecary widgets/{{NAME}} -o {{widgets_out}}/{{NAME}}/main.js -f {{WATCH ? --watch}}
 
-# Build a capstone widget's reference answer from widgets/_solutions/NAME (replaces your build)
-widget-solution NAME:
+# Build a capstone widget's answer, fetched from the solutions branch (replaces your build)
+widget-solution NAME FROM="{{solutions}}":
+    -@git fetch -q origin solutions
+    git restore --source={{FROM}} --worktree -- widgets/_solutions/{{NAME}}
     @mkdir {{widgets_out}}/{{NAME}}
     scala-cli --power package widgets/project.scala apothecary widgets/_solutions/{{NAME}} -o {{widgets_out}}/{{NAME}}/main.js -f
 
