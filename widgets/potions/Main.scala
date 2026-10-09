@@ -2,6 +2,15 @@ import scala.scalajs.js
 
 import com.raquo.laminar.api.L.*
 import notebook.plugin.*
+import apothecary.{Json, as}
+
+/** The mixer's value: what the notebook's `case class Rgb(r: Int, g: Int, b: Int)` reads. */
+case class Rgb(r: Int, g: Int, b: Int) derives Json.ReadWriter:
+  def css = s"rgb($r, $g, $b)"
+
+/** The swatch display's payload. */
+case class Swatch(r: Int = 0, g: Int = 0, b: Int = 0, name: String = "") derives Json.ReadWriter:
+  def rgb = Rgb(r, g, b)
 
 /** The Apothecary's potion plugin: one bundle, two kinds.
   *  - `potions/mixer`  (widget)  three sliders → a colour, emitted as {"r","g","b"}
@@ -12,20 +21,8 @@ object Main extends LaminarPlugin:
   def view(payload: Signal[String], ctx: PluginContext): HtmlElement =
     ctx.name match
       case "mixer"  => mixer(payload, ctx)
-      case "swatch" => swatch(payload.map(parseRgb))
+      case "swatch" => swatch(payload.map(Json.readOr(_, Swatch())))
       case other    => div(s"potions: unknown renderer '$other'")
-
-  final case class Rgb(r: Int, g: Int, b: Int, name: String = ""):
-    def css = s"rgb($r, $g, $b)"
-    def json = s"""{"r":$r,"g":$g,"b":$b}"""
-
-  private def parseRgb(json: String): Rgb =
-    val d = js.JSON.parse(json)
-    def channel(k: String) =
-      val v = d.selectDynamic(k)
-      if js.typeOf(v) == "number" then v.asInstanceOf[Double].toInt.max(0).min(255) else 0
-    val name = d.selectDynamic("name")
-    Rgb(channel("r"), channel("g"), channel("b"), if js.typeOf(name) == "string" then name.toString else "")
 
   private def swatchBox(rgb: Signal[Rgb]) =
     div(
@@ -35,21 +32,22 @@ object Main extends LaminarPlugin:
       )
     )
 
-  def swatch(rgb: Signal[Rgb]): HtmlElement =
+  def swatch(swatch: Signal[Swatch]): HtmlElement =
     div(
       styleAttr := "display:flex;gap:.8rem;align-items:center",
-      swatchBox(rgb),
+      swatchBox(swatch.map(_.rgb)),
       div(
-        b(child.text <-- rgb.map(c => if c.name.nonEmpty then c.name else "unnamed potion")),
-        div(styleAttr := "opacity:.7;font-family:monospace", child.text <-- rgb.map(_.css))
+        b(child.text <-- swatch.map(s => if s.name.nonEmpty then s.name else "unnamed potion")),
+        div(styleAttr := "opacity:.7;font-family:monospace", child.text <-- swatch.map(_.rgb.css))
       )
     )
 
   def mixer(config: Signal[String], ctx: PluginContext): HtmlElement =
-    val bridge = ctx.widgetOpt.getOrElse(throw js.JavaScriptException(js.Error("mixer is a widget")))
+    val widget = ctx.widgetOpt.getOrElse(throw js.JavaScriptException(js.Error("mixer is a widget")))
+      .as[Rgb](Rgb(0, 0, 0))
     // local state follows external changes; the plugin's own writes go out
     // on every drag tick (the notebook coalesces them latest-wins)
-    val colour = Var(parseRgb(bridge.value()))
+    val colour = Var(widget.value)
     def slider(label: String, get: Rgb => Int, set: (Rgb, Int) => Rgb) =
       label_(
         styleAttr := "display:flex;gap:.5rem;align-items:center",
@@ -60,7 +58,7 @@ object Main extends LaminarPlugin:
             value <-- colour.signal.map(get(_).toString),
             onInput.mapToValue.map(_.toIntOption.getOrElse(0)) --> { v =>
               colour.update(set(_, v))
-              bridge.set(colour.now().json)
+              widget.set(colour.now())
             }
           )
         ),
@@ -68,7 +66,7 @@ object Main extends LaminarPlugin:
       )
     div(
       styleAttr := "display:flex;gap:1rem;align-items:center",
-      bridge.signal.map(parseRgb) --> colour.writer,
+      widget.signal --> colour.writer,
       div(
         slider("R", _.r, (c, v) => c.copy(r = v)),
         slider("G", _.g, (c, v) => c.copy(g = v)),

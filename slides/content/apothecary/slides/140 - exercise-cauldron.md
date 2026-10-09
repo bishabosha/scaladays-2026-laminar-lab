@@ -15,11 +15,11 @@
 3. Show *"It's going to blow!"* when fire salt > 80
 4. ★ A **Stir** button that adds a little of everything
 
-`sake ex-01` · solution in `solution/`
+`./sake ex 01-cauldron`
 
 {{end-stack}}
 
-{{demo apothecary/cauldron}}
+{{demo 01-cauldron/app}}
 
 {{end-columns}}
 

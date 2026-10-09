@@ -1,0 +1,8 @@
+/* The exercise page around the app. The app's own styles live in shared/Styles.scala. */
+body { margin:0; background:#f3eee4; font:16px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; color:#2b1d3a; }
+.shop-header { display:flex; gap:1rem; align-items:baseline; flex-wrap:wrap; padding:1rem 1.5rem; background:#2b1d3a; color:#f3ecdf; }
+.shop-header h1 { margin:0; font-size:1.4rem; color:#c08a2e; }
+#exercise-name { font-family:ui-monospace, Menlo, Consolas, monospace; }
+.build-status { margin-left:auto; font-size:.85rem; color:#cbbfdc; }
+.build-status[data-kind="error"] { color:#ff9b93; }
+main { max-width:52rem; margin:1.5rem auto; padding:0 1rem; }

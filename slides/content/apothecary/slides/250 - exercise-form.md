@@ -14,15 +14,16 @@
 2. Errors appear after **blur** or **submit**
 3. Not both *drinkable* and *explosive*
 4. **Dragon's breath** needs a licence no.
-5. ★ Disable submit while invalid
+5. ★ A problem summary
 
 {{end-stack}}
 
-{{demo apothecary/potion-form}}
+{{demo 02-potion-form/app}}
 
 {{end-columns}}
 
 ## Speaker notes
 
 15 minutes. Rule 4 makes a field appear conditionally: `child.maybe <--`.
-Tests for `validate` are provided; run `sake test-02`.
+Tests for `validate` are provided: `./sake test 02-potion-form`. Run with `./sake ex 02-potion-form`.
+The ★ also disables the button while the oracle is thinking (disabling while invalid would hide submit errors).

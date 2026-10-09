@@ -12,16 +12,17 @@
 
 1. Ingredient search: debounce + `flatMapSwitch`
 2. Loading / failed / ready, with **retry**
-3. Inventory list with `split`: add, ± quantity, delete
-4. Optimistic update: change now, roll back if the oracle refuses
-5. ★ Show a spinner on just the row being saved
+3. Shelves with `split`, plus delete
+4. Optimistic: change now, undo on refusal
+5. ★ Dim just the row being saved
 
 {{end-stack}}
 
-{{demo apothecary/cellar}}
+{{demo 03-cellar/app}}
 
 {{end-columns}}
 
 ## Speaker notes
 
-12 minutes. Step 4 is the hard one: keep the previous list to restore on failure.
+12 minutes. `./sake ex 03-cellar`. Tell them to turn the oracle's "slowest" slider up first to see the race.
+Step 4 is the hard one: keep the previous shelf to restore on failure.

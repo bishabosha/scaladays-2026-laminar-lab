@@ -1,7 +1,9 @@
-import scala.scalajs.js
-
 import com.raquo.laminar.api.L.*
 import notebook.plugin.*
+import apothecary.*
+
+/** The widget's value. Only JSON crosses to the notebook: this is `{"count": n}`. */
+case class Brews(count: Int) derives Json.ReadWriter
 
 /** A widget bundle. Its kinds are `<this directory>/<name>`:
   *  - in a slide:    {{demo <dir>/counter count=3}}
@@ -15,21 +17,17 @@ object Main extends LaminarPlugin:
       case "counter" => counter(ctx)
       case other     => div(s"unknown widget '$other'")
 
-  /** Only JSON crosses the boundary: `{"count": n}` in and out. */
-  def parseCount(json: String): Int =
-    val count = js.JSON.parse(json).selectDynamic("count")
-    if js.typeOf(count) == "number" then count.asInstanceOf[Double].toInt else 0
-
   def counter(ctx: PluginContext): HtmlElement =
-    val bridge = ctx.widgetOpt.getOrElse(throw new IllegalStateException("counter is a widget"))
-    val brews = Var(parseCount(bridge.value()))
+    val widget = ctx.widgetOpt.getOrElse(throw new IllegalStateException("counter is a widget"))
+      .as[Brews](Brews(0))
+    val brews = Var(widget.value.count)
     div(
-      bridge.signal.map(parseCount) --> brews,
+      widget.signal.map(_.count) --> brews,
       button(
         "Brew 🧪",
         onClick(_.sample(brews.signal).map(_ + 1)) --> { n =>
           brews.set(n)
-          bridge.set(s"""{"count":$n}""")
+          widget.set(Brews(n))
         }
       ),
       span(" brewed ", child.text <-- brews.signal, " times")

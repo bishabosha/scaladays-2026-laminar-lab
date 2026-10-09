@@ -12,4 +12,5 @@
 
 ## Speaker notes
 
-5 minutes; fine to skip if behind schedule. Exercise 4 starts from the exercise 2 solution.
+5 minutes; fine to skip if behind schedule. `./sake ex 04-brew`: starts from the exercise 2 solution.
+Confetti loads from esm.sh, so this one needs the network.

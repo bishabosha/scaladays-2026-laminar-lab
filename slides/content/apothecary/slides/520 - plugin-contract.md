@@ -5,11 +5,13 @@
 ## The plugin contract
 
 ```scala
-object Main extends LaminarPlugin:                  // notebook-plugin-api
+case class Rgb(r: Int, g: Int, b: Int) derives Json.ReadWriter   // upickle
+
+object Main extends LaminarPlugin:                                // notebook-plugin-api
   def view(payload: Signal[String], ctx: PluginContext): HtmlElement =
-    val bridge = ctx.widgetOpt.get                  // value(), set(json), signal
-    val colour = Var(Rgb.parse(bridge.value()))
-    div(bridge.signal.map(Rgb.parse) --> colour, sliders(colour, c => bridge.set(c.json)))
+    val widget = ctx.widgetOpt.get.as[Rgb](Rgb(0, 0, 0))          // value, set, signal
+    val colour = Var(widget.value)
+    div(widget.signal --> colour, sliders(colour, onChange = widget.writer))
 ```
 
 {{columns top}}
@@ -25,7 +27,7 @@ val mixH = Widgets.custom[Rgb](
 
 {{stack}}
 
-- Separately linked bundles: **only JSON crosses**
+- Separate bundles: **only JSON crosses**, a case class each side
 - Unknown plugin? The notebook shows a fallback
 - The same bundle drives this deck's demos
 

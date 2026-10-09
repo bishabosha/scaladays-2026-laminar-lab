@@ -23,4 +23,4 @@ Grimsby & Daughters, purveyors of fine potions since 1642, are going digital.
 
 ## Speaker notes
 
-Play with the cauldron demo live. Point out: this is Laminar running inside the slide.
+Play with the mixer live. Point out: this is Laminar running inside the slide.

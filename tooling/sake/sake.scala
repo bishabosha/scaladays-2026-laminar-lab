@@ -20,12 +20,20 @@
  *
  * Built-in variables: {{root}} (the Sakefile's directory), {{os}} (windows, mac or linux).
  * Built-in commands: echo, mkdir, copy, remove, fail, fail-if-exists, sake (run a recipe),
- *   and `for X in dirs <path> [except a b]: <command using {{X}}>`.
+ *   `for X in dirs <path> [except a b]: <command using {{X}}>`, and
+ *   `serve <dir> <port> [page]`: a static file server that runs alongside the following
+ *   commands; once they finish, sake keeps serving until Ctrl-C.
  *
  * Usage: sake [--list] [--dry-run] [recipe [args...]]...   args are positional or NAME=value
  */
 
+import java.net.{InetSocketAddress, URLDecoder}
+import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path, Paths, StandardCopyOption}
+import java.time.{Instant, ZoneOffset}
+import java.time.format.DateTimeFormatter
+import java.util.concurrent.{CountDownLatch, Executors}
+import com.sun.net.httpserver.{HttpExchange, HttpServer}
 import scala.jdk.CollectionConverters.*
 import scala.util.control.NoStackTrace
 
@@ -206,7 +214,11 @@ class Runner(file: Sakefile, dryRun: Boolean):
       case "sake" =>
         if args.isEmpty then throw SakeError("sake expects a recipe name")
         run(args.head, args.tail)
-      case "mkdir" | "remove" | "copy" if dryRun => ()
+      case "mkdir" | "remove" | "copy" | "serve" if dryRun => ()
+      case "serve" =>
+        if args.size < 2 || args.size > 3 then throw SakeError("serve expects <dir> <port> [page]")
+        val port = args(1).toIntOption.getOrElse(throw SakeError(s"serve: not a port: ${args(1)}"))
+        Serve.start(path(args(0)), port, args.lift(2).getOrElse("/"))
       case "mkdir" => args.foreach(a => Files.createDirectories(path(a)))
       case "remove" => args.map(path).foreach(deleteRecursively)
       case "copy" =>
@@ -233,6 +245,55 @@ class Runner(file: Sakefile, dryRun: Boolean):
     else
       Files.createDirectories(to.toAbsolutePath.getParent)
       Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING)
+
+/** A static file server for local development: no caching, Last-Modified for reload polling. */
+object Serve:
+  @volatile private var running = 0
+  private val types = Map(
+    "html" -> "text/html; charset=utf-8", "js" -> "text/javascript; charset=utf-8",
+    "mjs" -> "text/javascript; charset=utf-8", "css" -> "text/css; charset=utf-8",
+    "json" -> "application/json", "map" -> "application/json", "svg" -> "image/svg+xml",
+    "png" -> "image/png", "jpg" -> "image/jpeg", "woff2" -> "font/woff2", "txt" -> "text/plain; charset=utf-8")
+
+  def start(root: Path, port: Int, page: String): Unit =
+    val base = root.toAbsolutePath.normalize
+    if !Files.isDirectory(base) then throw SakeError(s"serve: not a directory: $root")
+    val server =
+      try HttpServer.create(InetSocketAddress("127.0.0.1", port), 0)
+      catch case _: java.net.BindException => throw SakeError(s"serve: port $port is in use (is another `sake` still running?)")
+    server.createContext("/", exchange => respond(base, exchange))
+    server.setExecutor(Executors.newCachedThreadPool { r => val t = Thread(r); t.setDaemon(true); t })
+    server.start()
+    running += 1
+    System.err.println(s"serving $root at http://127.0.0.1:$port${if page.startsWith("/") then page else "/" + page}")
+
+  private def respond(base: Path, exchange: HttpExchange): Unit =
+    try
+      val rel = URLDecoder.decode(exchange.getRequestURI.getRawPath, UTF_8).stripPrefix("/")
+      val target = base.resolve(rel).normalize
+      val file = if Files.isDirectory(target) then target.resolve("index.html") else target
+      val headers = exchange.getResponseHeaders
+      val head = exchange.getRequestMethod == "HEAD"
+      if !file.startsWith(base) || !Files.isRegularFile(file) || file.getFileName.toString.startsWith(".") then
+        exchange.sendResponseHeaders(404, -1)
+      else
+        val ext = file.getFileName.toString.split('.').last.toLowerCase
+        headers.set("Content-Type", types.getOrElse(ext, "application/octet-stream"))
+        headers.set("Cache-Control", "no-store")
+        headers.set("Last-Modified", DateTimeFormatter.RFC_1123_DATE_TIME.format(
+          Files.getLastModifiedTime(file).toInstant.atOffset(ZoneOffset.UTC)))
+        if head then exchange.sendResponseHeaders(200, -1)
+        else
+          val bytes = Files.readAllBytes(file)
+          exchange.sendResponseHeaders(200, bytes.length)
+          exchange.getResponseBody.write(bytes)
+    finally exchange.close()
+
+  /** Keep serving after the recipe's commands finish, until the process is interrupted. */
+  def awaitIfRunning(): Unit =
+    if running > 0 then
+      System.err.println("still serving; press Ctrl-C to stop")
+      CountDownLatch(1).await()
 
 def find(start: Path): Path =
   Iterator.iterate(start.toAbsolutePath.normalize)(_.getParent).takeWhile(_ != null)
@@ -267,6 +328,7 @@ def invocations(file: Sakefile, args: List[String]): List[(String, List[String])
     else
       val runner = Runner(file, dryRun = flags.exists(f => f == "--dry-run" || f == "-n"))
       for (name, recipeArgs) <- invocations(file, rest) do runner.run(name, recipeArgs)
+      Serve.awaitIfRunning()
   catch
     case e: SakeError =>
       System.err.println(s"sake: ${e.message}")

@@ -27,7 +27,36 @@ deck and the notebook read from that folder:
 A kind is `<directory>/<name>`. The directory selects the bundle, and your
 `view` receives `<name>` as `ctx.name`, so one bundle can serve several widgets.
 
-After rebuilding, the deck reloads by itself (`sake slides`). In the notebook
-(`sake notebook`), refresh the browser.
+## Values are case classes
 
-`potions/` is a complete example: a colour mixer widget and a swatch display.
+Only JSON crosses between your widget and the notebook. Describe it with a case class on
+each side, with the same field names:
+
+```scala
+// in the widget (upickle)
+case class Rgb(r: Int, g: Int, b: Int) derives Json.ReadWriter
+val widget = ctx.widgetOpt.get.as[Rgb](Rgb(0, 0, 0))   // widget.value, widget.set(rgb), widget.signal
+
+// in the notebook (jsoniter)
+case class Rgb(r: Int, g: Int, b: Int) derives ConfiguredJsonValueCodec
+val mixH = Widgets.custom[Rgb]("mix", "mixer/rgb", "{}", Rgb(180, 40, 120))
+```
+
+`Json` and `.as` come from `apothecary/Json.scala`, along with the shop's domain, the grumpy
+oracle and `Shop(...)` (the shop's styles). Every widget can use them: `import apothecary.*`.
+
+## Capstone starters
+
+| Directory | Kind | Value | Answer |
+| --- | --- | --- | --- |
+| `recipe/` | `recipe/form` | a `Potion` | `./sake widget-solution recipe` |
+| `oracle/` | `oracle/picker` | a `List[String]` | `./sake widget-solution oracle` |
+| `chart/` | `chart/brew` | a display, no value | `./sake widget-solution chart` |
+| your own | `./sake new-widget mixer` | e.g. an `Rgb` | `potions/` |
+
+The lab notebook (`notebooks/apothecary.notebook.sc`, run with `./sake notebook`) has a
+section wired up for each. The answers live in `_solutions/`.
+
+After rebuilding, the deck reloads by itself (`./sake slides`). In the notebook, refresh the
+browser. Plugin *displays* (like the chart) appear in the notebook's inspector: click the
+cell's `(result)` chip.

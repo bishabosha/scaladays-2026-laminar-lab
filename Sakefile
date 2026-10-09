@@ -2,6 +2,38 @@
 # Syntax: tooling/sake/sake.scala
 
 widgets_out := slides/public/assets/widgets
+exercises_port := 8000
+
+# Check your setup: builds exercise 00, then run `sake ex 00-setup` to see it
+check: publish-plugin-api
+    scala-cli version
+    sake ex-build 00-setup
+    echo
+    echo Ready, apprentice. Now run: ./sake ex 00-setup   (Windows: sake ex 00-setup)
+
+# Work on an exercise: builds on every save and serves it (VARIANT=solution for the answer)
+ex EX VARIANT="start":
+    @mkdir exercises/out/{{EX}}
+    serve exercises {{exercises_port}} /?ex={{EX}}
+    scala-cli --power package exercises/project.scala apothecary exercises/entry exercises/{{EX}}/{{VARIANT}} -o exercises/out/{{EX}}/main.js -f --watch
+
+# Build an exercise once, without serving it
+ex-build EX VARIANT="start":
+    @mkdir exercises/out/{{EX}}
+    scala-cli --power package exercises/project.scala apothecary exercises/entry exercises/{{EX}}/{{VARIANT}} -o exercises/out/{{EX}}/main.js -f
+
+# Run an exercise's tests (exercise 02 has them)
+test EX VARIANT="start":
+    scala-cli test exercises/project.scala apothecary exercises/entry exercises/{{EX}}/{{VARIANT}} exercises/{{EX}}/tests
+
+# Build every exercise solution as a slide demo: {{demo 01-cauldron/app}}
+ex-demos:
+    for E in dirs exercises except entry out 00-setup: sake ex-demo {{E}}
+
+# Build one exercise solution as a slide demo
+ex-demo EX:
+    @mkdir {{widgets_out}}/{{EX}}
+    scala-cli --power package exercises/project.scala apothecary exercises/entry exercises/{{EX}}/solution -o {{widgets_out}}/{{EX}}/main.js -f
 
 # Fetch the tiger-site-gen and notebook.sc submodules
 fetch:
@@ -46,11 +78,16 @@ new-widget NAME:
 # Build widgets/NAME for the deck and the notebook (WATCH=1 rebuilds on save)
 widget NAME WATCH="":
     @mkdir {{widgets_out}}/{{NAME}}
-    scala-cli --power package widgets/project.scala widgets/{{NAME}} -o {{widgets_out}}/{{NAME}}/main.js -f {{WATCH ? --watch}}
+    scala-cli --power package widgets/project.scala apothecary widgets/{{NAME}} -o {{widgets_out}}/{{NAME}}/main.js -f {{WATCH ? --watch}}
+
+# Build a capstone widget's reference answer from widgets/_solutions/NAME (replaces your build)
+widget-solution NAME:
+    @mkdir {{widgets_out}}/{{NAME}}
+    scala-cli --power package widgets/project.scala apothecary widgets/_solutions/{{NAME}} -o {{widgets_out}}/{{NAME}}/main.js -f
 
 # Build every widget
 widgets:
-    for W in dirs widgets except _template: sake widget {{W}}
+    for W in dirs widgets except _template _solutions: sake widget {{W}}
 
 # notebook.sc serving every built widget: http://localhost:8080
 [dir: modules/notebook.sc]
