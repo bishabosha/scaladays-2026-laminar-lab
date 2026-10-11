@@ -5,7 +5,7 @@ import com.raquo.laminar.api.L.*
 /** Exercise 01 · The cauldron
  *
  *  1. Three sliders: moonwater, nightshade, fire salt (0–100 each). One is done for you.
- *  2. The cauldron's colour mixes from all three: see `Mix.colour`.
+ *  2. The cauldron's colour mixes from all three: see `Mix.colour` in apothecary/Mix.scala.
  *  3. Show "It's going to blow!" when fire salt is above 80.
  *  4. ★ A "Stir" button that adds 5 of everything (but never more than 100).
  */
@@ -42,12 +42,3 @@ object App:
       ),
       span(child.text <-- amount.signal)
     )
-
-object Mix:
-  /** Moonwater is blue, nightshade purple, fire salt orange; nothing at all is murky grey. */
-  def colour(moonwater: Int, nightshade: Int, fireSalt: Int): String =
-    val total = (moonwater + nightshade + fireSalt).max(1).toDouble
-    def channel(blue: Int, purple: Int, orange: Int) =
-      ((moonwater * blue + nightshade * purple + fireSalt * orange) / total).round
-    if moonwater + nightshade + fireSalt == 0 then "rgb(90, 90, 80)"
-    else s"rgb(${channel(60, 120, 240)}, ${channel(120, 40, 120)}, ${channel(220, 160, 30)})"
