@@ -20,7 +20,7 @@ Done when `./sake test 02-potion-form` passes
 
 {{end-stack}}
 
-{{demo 02-potion-form/app}}
+{{demo 02-potion-form/app zoom=0.6}}
 
 {{end-columns}}
 

@@ -18,7 +18,7 @@
 
 {{end-stack}}
 
-{{demo 03-cellar/app}}
+{{demo 03-cellar/app zoom=0.6}}
 
 {{end-columns}}
 

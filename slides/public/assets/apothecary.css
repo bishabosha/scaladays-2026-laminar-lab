@@ -27,8 +27,9 @@
 
 /* Live Laminar demos. */
 .reveal .laminar-demo {
-  font-size:.7em; padding:.6em; border:2px dashed var(--rule); border-radius:.4em;
+  font-size:calc(.7em * var(--demo-zoom, 1)); padding:.6em; border:2px dashed var(--rule); border-radius:.4em;
   min-height:3em; text-align:left;
+  --apothecary-font-size:1em; /* the shop's apps size themselves in em, from this */
 }
 .reveal .laminar-demo[data-state="mounted"] { border-style:solid; border-color:var(--potion); }
 .reveal .laminar-demo .demo-pending { color:var(--muted); font-family:var(--r-code-font); margin:0; }

@@ -21,5 +21,6 @@ object Mix:
         else if max == g then 60 * ((b - r) / chroma + 2)
         else 60 * ((r - g) / chroma + 4)
       val saturation = 45 + 45 * chroma / 255
-      val lightness = 32 + 28 * total / 300
-      f"hsl(${(hue + 360) % 360}%.0f, $saturation%.0f%%, $lightness%.0f%%)"
+      // OKLCH lightness is as the eye sees it, so blue is as bright as yellow.
+      val lightness = 0.64 + 0.2 * total / 300
+      f"oklch(from hsl(${(hue + 360) % 360}%.0f $saturation%.0f%% 50%%) $lightness%.2f c h)"

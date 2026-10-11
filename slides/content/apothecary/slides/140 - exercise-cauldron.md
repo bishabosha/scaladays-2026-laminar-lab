@@ -19,7 +19,7 @@
 
 {{end-stack}}
 
-{{demo 01-cauldron/app}}
+{{demo 01-cauldron/app zoom=0.9}}
 
 {{end-columns}}
 

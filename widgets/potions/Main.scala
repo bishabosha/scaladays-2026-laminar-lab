@@ -27,14 +27,14 @@ object Main extends LaminarPlugin:
   private def swatchBox(rgb: Signal[Rgb]) =
     div(
       styleAttr <-- rgb.map(c =>
-        s"width:3.5rem;height:3.5rem;border-radius:50%;border:2px solid #8884;background:${c.css};" +
+        s"width:3.5em;height:3.5em;border-radius:50%;border:2px solid #8884;background:${c.css};" +
           "box-shadow:inset -6px -8px 12px #0004"
       )
     )
 
   def swatch(swatch: Signal[Swatch]): HtmlElement =
     div(
-      styleAttr := "display:flex;gap:.8rem;align-items:center",
+      styleAttr := "display:flex;gap:.8em;align-items:center",
       swatchBox(swatch.map(_.rgb)),
       div(
         b(child.text <-- swatch.map(s => if s.name.nonEmpty then s.name else "unnamed potion")),
@@ -50,8 +50,8 @@ object Main extends LaminarPlugin:
     val colour = Var(widget.value)
     def slider(label: String, get: Rgb => Int, set: (Rgb, Int) => Rgb) =
       label_(
-        styleAttr := "display:flex;gap:.5rem;align-items:center",
-        span(styleAttr := "width:1rem", label),
+        styleAttr := "display:flex;gap:.5em;align-items:center",
+        span(styleAttr := "width:1em", label),
         input(
           typ := "range", minAttr := "0", maxAttr := "255",
           controlled(
@@ -65,7 +65,7 @@ object Main extends LaminarPlugin:
         code(child.text <-- colour.signal.map(get(_).toString))
       )
     div(
-      styleAttr := "display:flex;gap:1rem;align-items:center",
+      styleAttr := "display:flex;gap:1em;align-items:center",
       widget.signal --> colour.writer,
       div(
         slider("R", _.r, (c, v) => c.copy(r = v)),

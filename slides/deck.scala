@@ -18,14 +18,16 @@ import scalatags.Text.all.*
 
 /** `{{demo potions/mixer r=120 g=60 b=190}}` mounts kind `mixer` of the widget built from
  *  `widgets/potions/` (`sake widget potions`): the same bundle and contract as a notebook.sc
- *  plugin. Optional `key=value` pairs seed the widget's JSON value (numbers stay numbers).
+ *  plugin. Optional `key=value` pairs seed the widget's JSON value (numbers stay numbers),
+ *  except `zoom=0.6`, which scales the demo (and the shop's apps in it) to fit its slide.
  */
 val demo =
   def jsonValue(raw: String) = raw.toDoubleOption.fold(ujson.Str(raw))(_ => ujson.Num(raw.toDouble))
   val render = (args: String) =>
     val kind :: pairs = args.trim.split("\\s+").toList: @unchecked
     require(kind.matches("[a-z0-9-]+/[a-z0-9-]+"), s"{{demo}} expects a <plugin>/<name> kind, got: '$args'")
-    val seed = pairs.map { pair =>
+    val (zoom, values) = pairs.partition(_.startsWith("zoom="))
+    val seed = values.map { pair =>
       val (key, value) = pair.span(_ != '=')
       require(key.nonEmpty && value.length > 1, s"{{demo}} expects key=value pairs, got: '$pair'")
       key -> jsonValue(value.drop(1))
@@ -33,6 +35,7 @@ val demo =
     // One wrapper element, so the value line never becomes an extra grid column.
     div(cls := "laminar-demo-frame")(
       div(cls := "laminar-demo", data("kind") := kind,
+        zoom.lastOption.map(z => style := s"--demo-zoom:${z.drop(5).toDouble}"),
         Option.when(seed.nonEmpty)(data("value") := ujson.write(ujson.Obj.from(seed))))(
         p(cls := "demo-pending", s"demo: $kind")
       ),
