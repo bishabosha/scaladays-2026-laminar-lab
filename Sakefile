@@ -4,6 +4,7 @@
 widgets_out := slides/public/assets/widgets
 # The answers live on this branch, not on main
 solutions := origin/solutions
+blog_docs := modules/tiger-site-gen/blog/_docs
 exercises_port := 8000
 
 # Check your setup: builds exercise 00, then run `sake ex 00-setup` to see it
@@ -136,15 +137,28 @@ deck-build:
 slides-build:
     scala-cli run . -- build --display
 
-# (maintainers) Copy the built deck into DEST, a checkout of the site that hosts it (e.g.
-# ../bishabosha.github.io): adds DEST/apothecary/ (without the notes page) and DEST/static/reveal_<hash>/
-publish-deck DEST:
-    fail-if-missing {{DEST}}/index.html {{DEST}} is not a site checkout (no index.html there)
+# The deck page becomes the blog's /apothecary/ page (the built HTML after slides/blog-page.son's
+# header); its assets go in the blog's static/reveal_<hash>/
+# (maintainers) Build the deck into the blog's sources, replacing an older copy
+publish-deck:
     sake deck-build
-    copy slides/dist-display/apothecary {{DEST}}/apothecary
-    remove {{DEST}}/apothecary/speaker-notes.html
-    copy slides/dist-display/static {{DEST}}/static
-    echo Copied the deck into {{DEST}}: commit and push that repository to publish /apothecary/
+    remove {{blog_docs}}/apothecary {{blog_docs}}/static/reveal_*
+    concat {{blog_docs}}/apothecary/index.md slides/blog-page.son slides/dist-display/apothecary/index.html
+    copy slides/dist-display/static {{blog_docs}}/static
+    echo The deck is in {{blog_docs}}: next, sake blog-build and sake publish-blog DEST
+
+# (maintainers) Build the blog (tiger-site-gen's blog/_docs, Breeze theme) into modules/tiger-site-gen/dist/breeze
+[dir: modules/tiger-site-gen]
+blog-build:
+    ./mill blog.runMain blog.makeSite
+
+# (maintainers) Copy the built blog into DEST, a checkout of the site (adds and replaces files only)
+publish-blog DEST:
+    fail-if-missing {{DEST}}/index.html {{DEST}} is not a site checkout (no index.html there)
+    fail-if-missing modules/tiger-site-gen/dist/breeze/index.html No built blog: run `sake blog-build` first
+    copy modules/tiger-site-gen/dist/breeze {{DEST}}
+    remove {{DEST}}/.outputs.json
+    echo Copied the blog into {{DEST}}: commit and push that repository to publish it
 
 # Start a new widget in widgets/NAME from the template
 new-widget NAME:

@@ -17,7 +17,10 @@ if [ -z "$SAKE_JVM" ]; then
       echo "sake: compiling natively with Scala Native (once, a minute or so)..." >&2
       mkdir -p "$SAKE_HOME/.sake"
       TMP="$BIN.tmp.$$"
-      if scala-cli --power package --native "$SAKE_HOME/tooling/sake" -o "$TMP" -f >"$SAKE_HOME/.sake/build.log" 2>&1; then
+      build() { scala-cli --power package --native "$SAKE_HOME/tooling/sake" -o "$TMP" -f >>"$SAKE_HOME/.sake/build.log" 2>&1; }
+      : >"$SAKE_HOME/.sake/build.log"
+      # A stale or half-written incremental build (e.g. an interrupted one) can fail: retry once from clean.
+      if build || { scala-cli clean "$SAKE_HOME/tooling/sake" >>"$SAKE_HOME/.sake/build.log" 2>&1 && build; }; then
         mv -f "$TMP" "$BIN"
         for old in "$SAKE_HOME"/.sake/sake-*; do [ "$old" = "$BIN" ] || rm -f "$old"; done
       else

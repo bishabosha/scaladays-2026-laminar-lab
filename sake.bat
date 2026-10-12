@@ -25,6 +25,11 @@ echo sake: compiling natively with Scala Native ^(once, a minute or so^)... 1>&2
 if not exist "%SAKE_HOME%.sake" mkdir "%SAKE_HOME%.sake"
 call scala-cli --power package --native "%SAKE_HOME%tooling\sake" -o "%BIN%" -f > "%SAKE_HOME%.sake\build.log" 2>&1
 if errorlevel 1 (
+  rem A stale or half-written incremental build (e.g. an interrupted one) can fail: retry once from clean.
+  call scala-cli clean "%SAKE_HOME%tooling\sake" >> "%SAKE_HOME%.sake\build.log" 2>&1
+  call scala-cli --power package --native "%SAKE_HOME%tooling\sake" -o "%BIN%" -f >> "%SAKE_HOME%.sake\build.log" 2>&1
+)
+if errorlevel 1 (
   if exist "%BIN%" del /q "%BIN%"
   type nul > "%BIN%.failed"
   echo sake: native build failed ^(see .sake\build.log^), running on the JVM 1>&2

@@ -176,17 +176,20 @@ starting state.
 
 ### Publishing the slides
 
-The deck is hosted with the blog, at <https://bishabosha.github.io/apothecary/>.
+The deck is published with the blog, which tiger-site-gen builds from `blog/_docs`, at
+<https://bishabosha.github.io/apothecary/> (linked from the blog's About page).
 
 ```sh
-./sake publish-deck ../bishabosha.github.io   # path to your checkout of the blog's site
+./sake publish-deck                          # build the deck into the blog's sources
+./sake blog-build                            # build the blog into modules/tiger-site-gen/dist/breeze
+./sake publish-blog ../bishabosha.github.io  # copy it into your checkout of the site
 ```
 
-This builds the static deck with every live demo (fetching the answers from the
-`solutions` branch) and copies it into the checkout: `apothecary/` (without
-`speaker-notes.html`) and one
-`static/reveal_<hash>/` directory, nothing else. Commit and push that repository to
-publish. Old `static/reveal_<hash>/` directories from earlier publishes can be deleted.
+`publish-deck` builds the deck with every live demo (fetching the answers from the
+`solutions` branch). The deck's page becomes the blog page `apothecary/index.md`: the built
+HTML after the SON header in `slides/blog-page.son`, rendered as it is by the blog's `raw`
+layout. Its assets go in the blog's `static/reveal_<hash>/`, replacing older bundles. Commit
+those in tiger-site-gen; then, after `publish-blog`, commit and push the site's checkout.
 
 ### Answers and the solutions branch
 

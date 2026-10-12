@@ -22,7 +22,9 @@
  *
  * Built-in variables: {{root}} (the Sakefile's directory), {{os}} (windows, mac or linux).
  * Built-in commands: echo, mkdir, copy, remove, fail, fail-if-exists, fail-if-missing, sake (run a recipe),
+ *   `concat <out> <in>...` (writes the files one after another into <out>),
  *   `for X in dirs <path> [except a b]: <command using {{X}}>`, and
+ *   `remove` also takes a pattern in the last part of a path (`static/reveal_*`), and
  *   `serve <dir> <port> [page]`: a static file server that runs alongside the following
  *   commands; once they finish, sake keeps serving until Ctrl-C.
  *
@@ -55,7 +57,41 @@ case class Recipe(name: String, doc: Option[String], dir: Option[String], params
 case class Sakefile(path: Path, vars: Map[String, String], recipes: List[Recipe]):
   def root: Path = path.getParent
   def recipe(name: String): Recipe =
-    recipes.find(_.name == name).getOrElse(throw SakeError(s"unknown recipe '$name' (try `sake --list`)"))
+    recipes.find(_.name == name).getOrElse(throw SakeError(s"unknown recipe '$name'${Suggest.hint(name, recipes.map(_.name))}"))
+
+/** Close names for a mistyped or partly typed recipe: those it starts, then those (or one of
+ *  their words) within a few edits.
+ */
+object Suggest:
+  def hint(name: String, names: List[String]): String =
+    matches(name, names) match
+      case Nil => " (try `sake --list`)"
+      case List(one) => s" (did you mean '$one'?)"
+      case many => s" (did you mean one of: ${many.mkString(", ")}?)"
+
+  def matches(name: String, names: List[String]): List[String] =
+    val typed = name.toLowerCase
+    val starts = names.filter(_.toLowerCase.startsWith(typed))
+    val limit = (typed.length / 3).max(1)
+    // A whole name, or one of its words: `bloggg` finds blog-build, `demos` finds ex-demos.
+    // Ties go to the closer whole name: `widgt` lists widget before reset-widget.
+    def score(n: String) =
+      val whole = distance(typed, n.toLowerCase)
+      ((whole :: n.toLowerCase.split('-').toList.filter(_.length >= 3).map(distance(typed, _))).min, whole)
+    val close = names
+      .map(n => n -> score(n))
+      .filter((n, d) => d._1 <= limit && !starts.contains(n))
+      .sortBy(_._2).map(_._1)
+    (starts ++ close).take(6)
+
+  /** Edits (insert, delete, substitute or swap neighbours) to turn `a` into `b`. */
+  def distance(a: String, b: String): Int =
+    val d = Array.tabulate(a.length + 1, b.length + 1)((i, j) => if i == 0 then j else if j == 0 then i else 0)
+    for i <- 1 to a.length; j <- 1 to b.length do
+      val cost = if a(i - 1) == b(j - 1) then 0 else 1
+      d(i)(j) = (d(i - 1)(j) + 1).min(d(i)(j - 1) + 1).min(d(i - 1)(j - 1) + cost)
+      if i > 1 && j > 1 && a(i - 1) == b(j - 2) && a(i - 2) == b(j - 1) then d(i)(j) = d(i)(j).min(d(i - 2)(j - 2) + 1)
+    d(a.length)(b.length)
 
 object Parse:
   private val Variable = """([A-Za-z_][\w-]*)\s*:=\s*(.*)""".r
@@ -92,7 +128,7 @@ object Parse:
     val all = recipes.result()
     all.groupBy(_.name).collectFirst { case (name, rs) if rs.size > 1 => throw SakeError(s"recipe '$name' is defined twice") }
     for r <- all; d <- r.deps if !all.exists(_.name == d) do
-      throw SakeError(s"${path.getFileName}:${r.line}: recipe '${r.name}' depends on unknown recipe '$d'")
+      throw SakeError(s"${path.getFileName}:${r.line}: recipe '${r.name}' depends on unknown recipe '$d'${Suggest.hint(d, all.map(_.name))}")
     Sakefile(path, vars, all)
 
   def unquote(s: String) =
@@ -237,13 +273,22 @@ class Runner(file: Sakefile, dryRun: Boolean):
       case "sake" =>
         if args.isEmpty then throw SakeError("sake expects a recipe name")
         run(args.head, args.tail)
-      case "mkdir" | "remove" | "copy" | "serve" if dryRun => ()
+      case "mkdir" | "remove" | "copy" | "concat" | "serve" if dryRun => ()
       case "serve" =>
         if args.size < 2 || args.size > 3 then throw SakeError("serve expects <dir> <port> [page]")
         val port = args(1).toIntOption.getOrElse(throw SakeError(s"serve: not a port: ${args(1)}"))
         Serve.start(path(args(0)), port, args.lift(2).getOrElse("/"))
       case "mkdir" => args.foreach(a => Files.createDirectories(path(a)))
-      case "remove" => args.map(path).foreach(deleteRecursively)
+      case "remove" => args.flatMap(matching(cwd, _)).foreach(deleteRecursively)
+      case "concat" =>
+        if args.size < 2 then throw SakeError(s"concat expects <out> <in>..., got: ${args.mkString(" ")}")
+        val out = path(args.head)
+        val parts = args.tail.map(path).map { in =>
+          if !Files.isRegularFile(in) then throw SakeError(s"concat: no such file: $in")
+          Files.readAllBytes(in)
+        }
+        Option(out.getParent).foreach(Files.createDirectories(_))
+        Files.write(out, parts.foldLeft(Array.emptyByteArray)(_ ++ _))
       case "copy" =>
         arity(2)
         copyRecursively(path(args(0)), path(args(1)))
@@ -252,6 +297,25 @@ class Runner(file: Sakefile, dryRun: Boolean):
         if dryRun then { note(s"  runs ${argv.mkString(" ")}  (in $cwd)"); return }
         val code = ProcessBuilder(argv.asJava).directory(cwd.toFile).inheritIO().start().waitFor()
         if code != 0 then throw SakeError(s"$command exited with code $code", code)
+
+  /** `a/b/name_*`: what the pattern in the last part of a path names (`*` any run, `?` one
+   *  character). Split before making a Path, since Windows paths cannot contain `*`.
+   */
+  private def matching(cwd: Path, arg: String): List[Path] =
+    val cut = arg.lastIndexWhere(c => c == '/' || c == '\\')
+    val (dir, name) = (if cut < 0 then "." else arg.take(cut).ifEmpty("/"), arg.drop(cut + 1))
+    if !name.exists(c => c == '*' || c == '?') then List(cwd.resolve(arg).normalize)
+    else
+      val pattern = name.map {
+        case '*' => ".*"
+        case '?' => "."
+        case c => java.util.regex.Pattern.quote(c.toString)
+      }.mkString.r
+      val parent = cwd.resolve(dir).normalize
+      if !Files.isDirectory(parent) then Nil
+      else Files.list(parent).iterator.asScala.toList.filter(f => pattern.matches(f.getFileName.toString)).sorted
+
+  extension (s: String) private def ifEmpty(other: String) = if s.isEmpty then other else s
 
   private def deleteRecursively(p: Path): Unit =
     if Files.isDirectory(p) && !Files.isSymbolicLink(p) then Files.list(p).iterator.asScala.toList.foreach(deleteRecursively)
