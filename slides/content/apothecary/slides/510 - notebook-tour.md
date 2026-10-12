@@ -2,14 +2,14 @@
 (id = "notebook-tour", seconds = 180, layout = "standard")
 ---
 
-## notebook.sc in 3 minutes
+## notebook.sc
 
 {{columns top}}
 
 {{stack}}
 
 - Scala cells form a **dependency graph**: run one, its dependents re-run
-- The UI is Laminar (of course)
+- The UI is written in Laminar
 - Built-in widgets: `slider`, `select`, `text`, `form`
 - A widget's value becomes a cell: `val heat: Int = 42`
 
@@ -18,12 +18,12 @@
 {{stack}}
 
 ```scala
-// cell: the fire
+// cell: a slider widget
 val heatH =
   Widgets.slider("heat", 0, 100, 40)
 
-// cell: re-runs when heat moves
-if heat > 80 then "💥" else "🫧"
+// cell: re-runs when heat changes
+if heat > 80 then "high" else "normal"
 ```
 
 {{end-stack}}

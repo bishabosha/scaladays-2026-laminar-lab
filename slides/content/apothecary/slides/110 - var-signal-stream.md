@@ -2,7 +2,7 @@
 (id = "var-signal-stream", seconds = 180, layout = "standard")
 ---
 
-## Three ingredients
+## `Var`, `Signal`, `EventStream`
 
 {{columns top}}
 
@@ -23,7 +23,7 @@ val bubbles: EventStream[Unit] =
 
 {{stack}}
 
-- **`Var`**: state you own, `set` / `update`
+- **`Var`**: mutable state, `set` / `update`
 - **`Signal`**: always has a *current* value
 - **`EventStream`**: things that *happen*
 - `map`, `combineWith`, `changes`, `startWith`

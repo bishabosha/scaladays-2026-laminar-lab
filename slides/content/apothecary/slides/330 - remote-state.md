@@ -2,7 +2,7 @@
 (id = "remote-state", seconds = 150, layout = "standard")
 ---
 
-## Loading, ready, or rude
+## Modelling remote state
 
 ```scala
 enum Remote[+A]:
@@ -16,9 +16,9 @@ def consult[A](f: => Future[A]): Signal[Remote[A]] =
     .startWith(Remote.Loading)
 
 child <-- consult(oracle.inventory()).map {
-  case Remote.Loading       => p(cls := "bubbling", "The oracle is thinking…")
+  case Remote.Loading       => p(cls := "loading", "Loading…")
   case Remote.Ready(items)  => ul(items.map(i => li(i.name)))
-  case Remote.Failed(why)   => p(cls := "rude", why, button("Ask again", onClick --> retry))
+  case Remote.Failed(why)   => p(cls := "error", why, button("Retry", onClick --> retry))
 }
 ```
 

@@ -2,13 +2,13 @@
 (id = "errors", seconds = 90, layout = "standard")
 ---
 
-## Errors you can see
+## Error handling
 
 {{stack}}
 
-- Model failures as **values**: `Remote.Failed`, `Problem`; render them
-- One `EventBus[Notice]` per page for toasts, fed from anywhere
-- Never let an exception escape an observer: the stream logs it and carries on, *silently*
+- Model failures as **values** (`Remote.Failed`, `Problem`) and render them
+- One `EventBus[Notice]` per page for notifications
+- An exception thrown in an observer is logged and otherwise ignored; register a handler
 
 ```scala
 AirstreamError.registerUnhandledErrorCallback(e => notices.emit(Notice.Bug(e)))

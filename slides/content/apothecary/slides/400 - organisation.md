@@ -4,6 +4,6 @@
 
 ## 4 · *Organisation* & interop
 
-Keeping the spaghetti out of the cauldron
+Components, errors and JavaScript interop
 
 ## Speaker notes

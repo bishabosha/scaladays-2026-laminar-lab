@@ -50,6 +50,16 @@ async function mountDemo(container) {
   }
 }
 
+// A demo loads the first time its slide is on screen (Reveal hides the others), so opening the
+// deck loads no bundle until a slide needs one. Once mounted, a demo stays mounted.
+const onScreen = new IntersectionObserver(entries => {
+  for (const entry of entries) {
+    if (!entry.isIntersecting) continue;
+    onScreen.unobserve(entry.target);
+    if (!entry.target.dataset.state) mountDemo(entry.target);
+  }
+});
+
 function scan() {
   for (const [container, handle] of mounted) {
     if (!container.isConnected) {
@@ -59,7 +69,7 @@ function scan() {
   }
   // Thumbnail copies in the authoring sidebar run no scripts; only mount real slides.
   for (const container of document.querySelectorAll('.reveal .slides .laminar-demo:not([data-state])')) {
-    mountDemo(container);
+    onScreen.observe(container);
   }
 }
 

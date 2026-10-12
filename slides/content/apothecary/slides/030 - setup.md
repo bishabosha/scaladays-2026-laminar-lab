@@ -8,11 +8,11 @@
 
 1. Install [Scala CLI](https://scala-cli.virtuslab.org/install) and [Node.js](https://nodejs.org/en/download)
 2. `git clone --recurse-submodules git@github.com:bishabosha/scaladays-2026-laminar-lab.git` then `cd scaladays-2026-laminar-lab`
-3. `./sake check`, until it says **Ready, apprentice**
+3. `./sake check` (must succeed)
 4. In a **second terminal**: `./sake prepare`, and leave it running
-5. `./sake ex 00-setup`, open <http://127.0.0.1:8000/?ex=00-setup>, say hello
+5. `./sake ex 00-setup`, open <http://127.0.0.1:8000/?ex=00-setup>
 
-Every step, for every OS: **github.com/bishabosha/scaladays-2026-laminar-lab** · Windows: `sake` instead of `./sake`
+Full instructions: **github.com/bishabosha/scaladays-2026-laminar-lab** · Windows: `sake` instead of `./sake`
 
 ## Speaker notes
 

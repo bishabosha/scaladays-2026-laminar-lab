@@ -2,7 +2,7 @@
 (id = "split", seconds = 180, layout = "standard")
 ---
 
-## Touch only what changed
+## Keyed lists with `split`
 
 ```scala
 val stock: Var[List[Stock]] = Var(Nil)

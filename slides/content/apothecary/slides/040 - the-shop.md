@@ -2,18 +2,18 @@
 (id = "the-shop", seconds = 90, layout = "standard")
 ---
 
-## The shop
+## Fake potion store
 
 {{columns}}
 
 {{stack}}
 
-Grimsby & Daughters, purveyors of fine potions since 1642, are going digital.
+As the **new** apprentice your task is to build lots of the machinery for automating the potion store (apothecary).
 
-- brew potions in a **cauldron**
-- **register** new recipes (with the Guild's many rules)
-- **search** the ingredient cellar, manage stock
-- a grumpy **oracle** for a backend
+- a **cauldron** colour mixer
+- a recipe **registration** form with validation rules
+- ingredient **search** and stock management
+- a simulated **backend** with latency and failures
 
 {{end-stack}}
 

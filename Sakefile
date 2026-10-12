@@ -62,7 +62,7 @@ ex-demos:
 ex-demo EX:
     sake solution {{EX}}
     @mkdir {{widgets_out}}/{{EX}}
-    scala-cli --power package exercises/project.scala apothecary exercises/entry exercises/{{EX}}/solution -o {{widgets_out}}/{{EX}}/main.js -f
+    scala-cli --power package exercises/project.scala apothecary exercises/entry exercises/{{EX}}/solution --js-mode release -o {{widgets_out}}/{{EX}}/main.js -f
 
 # Start an exercise over: discards your changes to exercises/EX/start
 reset-ex EX:
@@ -139,9 +139,20 @@ slides-build:
 
 # The blog's apothecary/index.md includes the deck's page from static/pageSources/ (not published
 # itself); the deck's assets go in static/reveal_<hash>/
-# (maintainers) Build the deck into the blog's sources, replacing an older copy
+# (maintainers) Build the deck, with every demo, into the blog's sources, replacing an older copy
 publish-deck:
     sake deck-build
+    sake deck-to-blog
+
+# (maintainers) Like publish-deck, but reuses the demos already built: for changes to slide text
+publish-deck-quick:
+    fail-if-missing {{widgets_out}}/01-cauldron/main.js No demos built yet: run `sake publish-deck` once
+    remove slides/dist-display
+    sake slides-build
+    sake deck-to-blog
+
+# (maintainers) Copy the built deck in slides/dist-display/ into the blog's sources
+deck-to-blog:
     remove {{blog_docs}}/static/reveal_*
     mkdir {{blog_docs}}/static/pageSources
     copy slides/dist-display/apothecary/index.html {{blog_docs}}/static/pageSources/apothecary.index.html

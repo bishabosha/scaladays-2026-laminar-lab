@@ -2,7 +2,7 @@
 (id = "switch", seconds = 180, layout = "standard")
 ---
 
-## Typing faster than the oracle
+## Stale responses
 
 ```scala
 val query = Var("")
@@ -14,8 +14,8 @@ val results: EventStream[List[Ingredient]] =
       EventStream.fromFuture(oracle.searchIngredients(q)))
 ```
 
-- `flatMapMerge` would show *whichever answer arrives last* 😱
-- `flatMapSwitch` only listens to the **latest** request
+- `flatMapMerge` shows whichever response arrives last
+- `flatMapSwitch` only emits the response to the **latest** request
 
 ## Speaker notes
 

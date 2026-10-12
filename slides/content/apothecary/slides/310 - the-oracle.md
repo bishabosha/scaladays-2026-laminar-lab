@@ -2,7 +2,7 @@
 (id = "the-oracle", seconds = 120, layout = "standard")
 ---
 
-## The oracle
+## The backend: `Oracle`
 
 ```scala
 trait Oracle:
@@ -13,9 +13,9 @@ trait Oracle:
   def register(potion: Potion): Future[String]
 ```
 
-- Runs in your browser: **random latency** (100–1500 ms)
-- **10 % of calls fail** with a rude message. On purpose.
-- Change its mood live with the 🔮 panel on every exercise page
+- Runs in the browser, with **random latency** (100–1500 ms)
+- **10 % of calls fail**
+- Latency and failure rate are adjustable in each exercise page's oracle panel
 
 ## Speaker notes
 

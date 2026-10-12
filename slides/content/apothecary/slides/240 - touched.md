@@ -2,7 +2,7 @@
 (id = "touched", seconds = 150, layout = "standard")
 ---
 
-## Don't shout before they've typed
+## Errors after blur or submit
 
 ```scala
 val touched = Var(Set.empty[String])

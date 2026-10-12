@@ -2,7 +2,7 @@
 (id = "interop", seconds = 120, layout = "standard")
 ---
 
-## Borrowing from JavaScript
+## JavaScript interop
 
 ```scala
 object Confetti:
@@ -15,7 +15,7 @@ button(
 )
 ```
 
-Widgets that own DOM: hand them a node on mount, clean up on unmount
+Libraries that own DOM nodes: create on mount, destroy on unmount
 
 ```scala
 div(onMountUnmountCallback(

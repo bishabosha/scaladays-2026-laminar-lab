@@ -2,21 +2,25 @@
 (id = "welcome", seconds = 90, layout = "standard")
 ---
 
-## Welcome, apprentice
+## About this lab
+
+Focus: [Laminar](https://laminar.dev), a reactive UI library fo Scala.js
 
 {{columns top}}
 
 {{stack}}
 
-- Two years building business apps in Laminar
-- Forms, validation and async: the boring parts that matter
-- Today: the same skills, with *potions*
+**Concepts covered**
+  - reactive state
+  - wiring forms to backend
+  - controlled inputs with validation,
+  - async event handling.
 
 {{end-stack}}
 
 {{stack}}
 
-**You will build**
+**Exercises**
 
 - a cauldron mixer
 - a potion registration form

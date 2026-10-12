@@ -2,7 +2,7 @@
 (id = "ownership", seconds = 120, layout = "standard")
 ---
 
-## Who owns the bubbles?
+## Subscription ownership
 
 {{stack}}
 
@@ -12,8 +12,8 @@
 
 ```scala
 div(
-  EventStream.periodic(1000) --> (_ => println("bubble")), // stops on unmount
-  onMountCallback(ctx => println("lit the fire"))
+  EventStream.periodic(1000) --> (_ => println("tick")), // stops on unmount
+  onMountCallback(ctx => println("mounted"))
 )
 ```
 

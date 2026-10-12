@@ -2,15 +2,15 @@
 (id = "capstone-build", seconds = 1260, layout = "exercise")
 ---
 
-## Brewing time
+## Capstone
 
 {{columns}}
 
 {{stack}}
 
-- 20 minutes: pair up if you like
-- Share your notebook: we'll demo 2 or 3 at the end
-- Finished early? Make two of your widgets **talk** via cells
+- 20 minutes, alone or in pairs
+- A few notebooks are demonstrated at the end
+- Extension: connect two widgets through cells
 
 {{end-stack}}
 

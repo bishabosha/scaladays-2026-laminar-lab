@@ -4,6 +4,6 @@
 
 ## 2 · *Forms* & validation
 
-The Guild of Apothecaries has *rules*
+Controlled inputs, validation and error display
 
 ## Speaker notes

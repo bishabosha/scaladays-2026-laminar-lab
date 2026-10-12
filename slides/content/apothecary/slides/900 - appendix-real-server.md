@@ -2,7 +2,7 @@
 (id = "appendix-real-server", seconds = 0, layout = "appendix")
 ---
 
-## Appendix · A real oracle
+## Appendix · An HTTP backend
 
 ```scala
 class HttpOracle(base: String) extends Oracle:
@@ -12,6 +12,6 @@ class HttpOracle(base: String) extends Oracle:
       .map(read[List[Ingredient]](_))
 ```
 
-The exercises only depend on `Oracle`, so this slots in without touching the views
+The exercises depend only on `Oracle`, so this replaces the simulated backend without changes to the views
 
 ## Speaker notes

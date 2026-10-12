@@ -2,14 +2,14 @@
 (id = "capstone-options", seconds = 120, layout = "standard")
 ---
 
-## Choose your potion
+## Capstone options
 
-| | Widget | Start in | Module |
-| --- | --- | --- | --- |
-| 🧪 | **Mixer**: sliders → an `Rgb` | `new-widget` | 1 |
-| 📜 | **Recipe**: a form → a `Potion` | `widgets/recipe` | 2 |
-| 🔮 | **Oracle**: search → `List[String]` | `widgets/oracle` | 3 |
-| 📈 | **Chart**: plots a cell over time | `widgets/chart` | 4 |
+| Widget | Start in | Module |
+| --- | --- | --- |
+| **Mixer**: sliders → an `Rgb` | `new-widget` | 1 |
+| **Recipe**: a form → a `Potion` | `widgets/recipe` | 2 |
+| **Oracle**: search → `List[String]` | `widgets/oracle` | 3 |
+| **Chart**: plots a cell over time | `widgets/chart` | 4 |
 
 `./sake widget recipe WATCH=1` · `./sake notebook`
 

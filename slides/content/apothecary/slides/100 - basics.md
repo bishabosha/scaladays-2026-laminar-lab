@@ -4,6 +4,6 @@
 
 ## 1 · Reactive *basics*
 
-Vars, signals, streams, and who owns them
+`Var`, `Signal`, `EventStream` and ownership
 
 ## Speaker notes

@@ -4,6 +4,6 @@
 
 ## Capstone · *notebook.sc* widgets
 
-Your Laminar code, inside someone else's app
+Laminar widgets hosted in another application
 
 ## Speaker notes

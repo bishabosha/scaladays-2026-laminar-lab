@@ -16,8 +16,8 @@ object DoseInput:
 ```
 
 - **In:** `Signal`s. **Out:** `Observer`s. **Return:** an element
-- State lives with whoever *needs* it, usually the page, not the widget
-- Needs to expose more? Return a small class: `.element` plus extra signals
+- State lives where it is needed, usually in the page, not the component
+- To expose more, return a small class: `.element` plus extra signals
 
 ## Speaker notes
 

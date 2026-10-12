@@ -4,6 +4,6 @@
 
 ## 3 · *Async* & the backend
 
-Consulting the oracle (who is slow, and sometimes rude)
+A slow, unreliable backend
 
 ## Speaker notes

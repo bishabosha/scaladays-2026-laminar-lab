@@ -181,6 +181,7 @@ The deck is published with the blog, which tiger-site-gen builds from `blog/_doc
 
 ```sh
 ./sake publish-deck                          # build the deck into the blog's sources
+#   or ./sake publish-deck-quick             # the same, reusing the built demos (text changes)
 ./sake blog-build                            # build the blog into modules/tiger-site-gen/dist/breeze
 ./sake publish-blog ../bishabosha.github.io  # copy it into your checkout of the site
 ```

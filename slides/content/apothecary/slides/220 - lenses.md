@@ -2,9 +2,9 @@
 (id = "lenses", seconds = 150, layout = "standard")
 ---
 
-## Less `copy`, more potion
+## Lenses over a case-class `Var`
 
-From last year's ScalaDays: a `Selectable` lens over a case-class `Var`
+A `Selectable` lens, from ScalaDays 2025
 
 ```scala
 val form = VarLenses(Potion("", 1, drinkable = true, explosive = false))

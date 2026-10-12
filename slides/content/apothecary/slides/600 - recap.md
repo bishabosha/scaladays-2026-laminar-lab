@@ -2,7 +2,7 @@
 (id = "recap", seconds = 135, layout = "standard")
 ---
 
-## What we brewed
+## Summary
 
 {{columns top}}
 
@@ -19,7 +19,7 @@
 {{stack}}
 
 - Components: signals in, observers out
-- Errors are values you render
+- Errors as values, rendered
 - JS interop with facades and mount hooks
 - Plugins: Laminar inside *another* app
 

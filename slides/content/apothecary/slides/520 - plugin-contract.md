@@ -28,7 +28,7 @@ val mixH = Widgets.custom[Rgb](
 {{stack}}
 
 - Separate bundles: **only JSON crosses**, a case class each side
-- Unknown plugin? The notebook shows a fallback
+- An unknown plugin renders as a fallback
 - The same bundle drives this deck's demos
 
 {{end-stack}}

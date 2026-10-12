@@ -2,7 +2,7 @@
 (id = "agenda", seconds = 60, layout = "standard")
 ---
 
-## The recipe
+## Agenda
 
 | Time | Module |
 | --- | --- |

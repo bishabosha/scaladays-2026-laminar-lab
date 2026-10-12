@@ -2,7 +2,7 @@
 (id = "exercise-brew", seconds = 300, layout = "exercise")
 ---
 
-## Exercise 4 · Celebrate a brew
+## Exercise 4 · Components and interop
 
 {{exercise 04-brew}}
 

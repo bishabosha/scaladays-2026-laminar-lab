@@ -2,7 +2,7 @@
 (id = "arrows", seconds = 150, layout = "standard")
 ---
 
-## Pointing the arrows
+## Binding with `<--` and `-->`
 
 ```scala
 def cauldron(heat: Var[Int]): HtmlElement =
