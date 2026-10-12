@@ -24,7 +24,7 @@ object Styles:
 .apothecary-app h2 { margin:0; font-size:1.3em; }
 .apothecary-app button {
   font:inherit; padding:.35em .8em; border-radius:.4em; border:1px solid var(--potion);
-  background:var(--potion); color:#fff; cursor:pointer;
+  background:var(--potion); color:#fff; cursor:pointer; white-space:nowrap;
 }
 .apothecary-app button.quiet { background:transparent; color:var(--potion); }
 .apothecary-app button:disabled { opacity:.45; cursor:not-allowed; }
@@ -57,7 +57,8 @@ object Styles:
 .apothecary-app .rude { color:var(--rude); }
 .apothecary-app ul.results, .apothecary-app ul.shelves { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.3em; }
 .apothecary-app .results li { display:flex; gap:.5em; align-items:baseline; }
-.apothecary-app .rarity { font-size:.75em; padding:0 .4em; border-radius:.3em; background:var(--rule); }
+.apothecary-app .results li > :not(.note) { flex:none; }
+.apothecary-app .rarity { font-size:.75em; padding:0 .4em; border-radius:.3em; background:var(--rule); white-space:nowrap; }
 .apothecary-app .rarity.Legendary { background:var(--brass); color:#fff; }
 .apothecary-app .note { color:var(--muted); font-size:.9em; }
 .apothecary-app .shelf { display:grid; grid-template-columns:1fr auto auto auto auto; gap:.5em; align-items:center; }

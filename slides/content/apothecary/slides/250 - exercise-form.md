@@ -1,12 +1,10 @@
 ---scala
-(id = "exercise-form", seconds = 900, layout = "exercise")
+(id = "exercise-form", seconds = 900, layout = "exercise-demo")
 ---
 
 ## Exercise 2 · Register a potion
 
 {{exercise 02-potion-form}}
-
-{{columns top}}
 
 {{stack}}
 
@@ -20,9 +18,7 @@ Done when `./sake test 02-potion-form` passes
 
 {{end-stack}}
 
-{{demo 02-potion-form/app zoom=0.6}}
-
-{{end-columns}}
+{{demo 02-potion-form/app zoom=0.75}}
 
 ## Speaker notes
 

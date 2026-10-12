@@ -20,6 +20,18 @@
 
 /* Exercise slides carry a brass rule and a tag for the exercise directory. */
 .reveal .exercise-slide { border-top:12px solid var(--brass); }
+/* layout "exercise-demo": title, tag and steps on the left; the demo spans the right half.
+   The slide has no {{columns}}: its parts sit directly in this grid. */
+.reveal .demo-slide .slide-body {
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-rows:auto auto 1fr;
+  column-gap:1em; row-gap:.65em;
+}
+.reveal .demo-slide .slide-body > * { grid-column:1; }
+.reveal .demo-slide .slide-body > h2 { font-size:1.15em; }
+.reveal .demo-slide .slide-body > .stack { justify-content:start; }
+/* The demo keeps its own height, up to the slide's; beyond that (e.g. long search results) it scrolls. */
+.reveal .demo-slide .slide-body > .laminar-demo-frame { grid-column:2; grid-row:1 / span 3; min-height:0; }
+.reveal .demo-slide .laminar-demo { min-height:0; overflow:auto; }
 .reveal .exercise-tag {
   display:inline-block; padding:.1em .5em; border-radius:.3em;
   background:var(--brass); color:#fff; font:600 .6em var(--r-code-font);

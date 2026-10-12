@@ -21,9 +21,9 @@ deck and the notebook read from that folder:
 
 | Where | How to include it |
 | --- | --- |
-| a slide | `{{demo cauldron/mixer}}`, optionally seeded: `{{demo cauldron/mixer r=120 g=60}}` |
-| a notebook cell | `Widgets.custom[Rgb]("mix", "cauldron/mixer", "{}", Rgb(1, 2, 3))` |
-| a notebook display | `Display.extensionOf("cauldron/swatch", value)` |
+| a slide | `{{demo potions/mixer}}`, optionally seeded: `{{demo potions/mixer r=120 g=60}}`, and scaled to fit: `zoom=0.8` |
+| a notebook cell | `Widgets.custom[Rgb]("mix", "potions/mixer", "{}", Rgb(1, 2, 3))` |
+| a notebook display | `Display.extensionOf("potions/swatch", value)` |
 
 A kind is `<directory>/<name>`. The directory selects the bundle, and your
 `view` receives `<name>` as `ctx.name`, so one bundle can serve several widgets.
@@ -40,7 +40,7 @@ val widget = ctx.widgetOpt.get.as[Rgb](Rgb(0, 0, 0))   // widget.value, widget.s
 
 // in the notebook (jsoniter)
 case class Rgb(r: Int, g: Int, b: Int) derives ConfiguredJsonValueCodec
-val mixH = Widgets.custom[Rgb]("mix", "mixer/rgb", "{}", Rgb(180, 40, 120))
+val mixH = Widgets.custom[Rgb]("mix", "potions/mixer", "{}", Rgb(180, 40, 120))
 ```
 
 `Json` and `.as` come from `apothecary/Json.scala`, along with the shop's domain, the grumpy

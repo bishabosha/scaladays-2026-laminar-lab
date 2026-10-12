@@ -1,12 +1,10 @@
 ---scala
-(id = "exercise-cellar", seconds = 720, layout = "exercise")
+(id = "exercise-cellar", seconds = 720, layout = "exercise-demo")
 ---
 
 ## Exercise 3 · The cellar
 
 {{exercise 03-cellar}}
-
-{{columns top}}
 
 {{stack}}
 
@@ -18,9 +16,7 @@
 
 {{end-stack}}
 
-{{demo 03-cellar/app zoom=0.6}}
-
-{{end-columns}}
+{{demo 03-cellar/app zoom=0.8}}
 
 ## Speaker notes
 

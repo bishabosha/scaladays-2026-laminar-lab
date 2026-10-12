@@ -1,12 +1,10 @@
 ---scala
-(id = "exercise-cauldron", seconds = 600, layout = "exercise")
+(id = "exercise-cauldron", seconds = 600, layout = "exercise-demo")
 ---
 
 ## Exercise 1 · The cauldron
 
 {{exercise 01-cauldron}}
-
-{{columns top}}
 
 {{stack}}
 
@@ -19,9 +17,7 @@
 
 {{end-stack}}
 
-{{demo 01-cauldron/app zoom=0.9}}
-
-{{end-columns}}
+{{demo 01-cauldron/app zoom=1.2}}
 
 ## Speaker notes
 

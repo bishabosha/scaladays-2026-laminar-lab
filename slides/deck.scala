@@ -54,7 +54,10 @@ val labTheme = RevealTheme.withTemplates(
   slideLayouts = Map(
     "title" -> SlideLayout("title-slide", Some("#2b1d3a")),
     "chapter" -> SlideLayout("dark-slide chapter-slide", Some("#2b1d3a")),
-    "exercise" -> SlideLayout("exercise-slide")
+    "exercise" -> SlideLayout("exercise-slide"),
+    // An exercise whose `{{demo}}` takes the right half, at the slide's full height: a `{{stack}}`
+    // of steps then the `{{demo}}`, without `{{columns}}`.
+    "exercise-demo" -> SlideLayout("exercise-slide demo-slide")
   ),
   page = DeckPage(
     stylesheets = Seq("assets/apothecary.css"),
