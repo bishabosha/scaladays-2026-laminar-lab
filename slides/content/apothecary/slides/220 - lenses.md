@@ -4,7 +4,7 @@
 
 ## Lenses over a case-class `Var`
 
-A `Selectable` lens, from ScalaDays 2025
+Simplified updaters for large form-like data (product types).
 
 ```scala
 val form = VarLenses(Potion("", 1, drinkable = true, explosive = false))
@@ -15,8 +15,8 @@ input(controlled(
 ))
 ```
 
-- `form.name` is typed `(updater: Observer[String], view: Signal[String])`
-- Named tuples + `Mirror.ProductOf`, ~50 lines: `lenses.scala` in the exercise
+- `form.name` is a named tuple with two fields: `updater: Observer[String]` and `view: Signal[String]`.
+- Compatible with any case class that supports `scala.deriving.Mirror`.
 
 ## Speaker notes
 
