@@ -12,7 +12,7 @@ object App:
       div(
         cls := "row",
         label("Your name: "),
-        input(typ := "text", placeholder := "Hermione", controlled(value <-- name, onInput.mapToValue --> name))
+        input(typ := "text", placeholder := "Leaf", controlled(value <-- name, onInput.mapToValue --> name))
       ),
       p(
         child.text <-- name.signal.map(n =>

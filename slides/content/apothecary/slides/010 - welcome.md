@@ -25,7 +25,7 @@ Focus: [Laminar](https://laminar.dev), a reactive UI library fo Scala.js
 - a cauldron mixer
 - a potion registration form
 - an ingredient search & inventory
-- a widget for **notebook.sc**
+- Custom widgets for a reactive Scala notebook
 
 {{end-stack}}
 
