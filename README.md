@@ -186,10 +186,11 @@ The deck is published with the blog, which tiger-site-gen builds from `blog/_doc
 ```
 
 `publish-deck` builds the deck with every live demo (fetching the answers from the
-`solutions` branch). The deck's page becomes the blog page `apothecary/index.md`: the built
-HTML after the SON header in `slides/blog-page.son`, rendered as it is by the blog's `raw`
-layout. Its assets go in the blog's `static/reveal_<hash>/`, replacing older bundles. Commit
-those in tiger-site-gen; then, after `publish-blog`, commit and push the site's checkout.
+`solutions` branch). The blog's `apothecary/index.md` is a fixed page that includes the
+deck's page with `{{include /static/pageSources/apothecary.index.html}}`; `publish-deck`
+replaces that file (tiger never publishes `static/pageSources/` itself) and the deck's
+assets in `static/reveal_<hash>/`, deleting older bundles. Commit those in tiger-site-gen;
+then, after `publish-blog`, commit and push the site's checkout.
 
 ### Answers and the solutions branch
 

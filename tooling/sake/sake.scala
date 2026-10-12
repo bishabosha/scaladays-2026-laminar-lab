@@ -22,7 +22,6 @@
  *
  * Built-in variables: {{root}} (the Sakefile's directory), {{os}} (windows, mac or linux).
  * Built-in commands: echo, mkdir, copy, remove, fail, fail-if-exists, fail-if-missing, sake (run a recipe),
- *   `concat <out> <in>...` (writes the files one after another into <out>),
  *   `for X in dirs <path> [except a b]: <command using {{X}}>`, and
  *   `remove` also takes a pattern in the last part of a path (`static/reveal_*`), and
  *   `serve <dir> <port> [page]`: a static file server that runs alongside the following
@@ -273,22 +272,13 @@ class Runner(file: Sakefile, dryRun: Boolean):
       case "sake" =>
         if args.isEmpty then throw SakeError("sake expects a recipe name")
         run(args.head, args.tail)
-      case "mkdir" | "remove" | "copy" | "concat" | "serve" if dryRun => ()
+      case "mkdir" | "remove" | "copy" | "serve" if dryRun => ()
       case "serve" =>
         if args.size < 2 || args.size > 3 then throw SakeError("serve expects <dir> <port> [page]")
         val port = args(1).toIntOption.getOrElse(throw SakeError(s"serve: not a port: ${args(1)}"))
         Serve.start(path(args(0)), port, args.lift(2).getOrElse("/"))
       case "mkdir" => args.foreach(a => Files.createDirectories(path(a)))
       case "remove" => args.flatMap(matching(cwd, _)).foreach(deleteRecursively)
-      case "concat" =>
-        if args.size < 2 then throw SakeError(s"concat expects <out> <in>..., got: ${args.mkString(" ")}")
-        val out = path(args.head)
-        val parts = args.tail.map(path).map { in =>
-          if !Files.isRegularFile(in) then throw SakeError(s"concat: no such file: $in")
-          Files.readAllBytes(in)
-        }
-        Option(out.getParent).foreach(Files.createDirectories(_))
-        Files.write(out, parts.foldLeft(Array.emptyByteArray)(_ ++ _))
       case "copy" =>
         arity(2)
         copyRecursively(path(args(0)), path(args(1)))

@@ -137,19 +137,21 @@ deck-build:
 slides-build:
     scala-cli run . -- build --display
 
-# The deck page becomes the blog's /apothecary/ page (the built HTML after slides/blog-page.son's
-# header); its assets go in the blog's static/reveal_<hash>/
+# The blog's apothecary/index.md includes the deck's page from static/pageSources/ (not published
+# itself); the deck's assets go in static/reveal_<hash>/
 # (maintainers) Build the deck into the blog's sources, replacing an older copy
 publish-deck:
     sake deck-build
-    remove {{blog_docs}}/apothecary {{blog_docs}}/static/reveal_*
-    concat {{blog_docs}}/apothecary/index.md slides/blog-page.son slides/dist-display/apothecary/index.html
+    remove {{blog_docs}}/static/reveal_*
+    mkdir {{blog_docs}}/static/pageSources
+    copy slides/dist-display/apothecary/index.html {{blog_docs}}/static/pageSources/apothecary.index.html
     copy slides/dist-display/static {{blog_docs}}/static
     echo The deck is in {{blog_docs}}: next, sake blog-build and sake publish-blog DEST
 
 # (maintainers) Build the blog (tiger-site-gen's blog/_docs, Breeze theme) into modules/tiger-site-gen/dist/breeze
 [dir: modules/tiger-site-gen]
 blog-build:
+    remove dist/breeze
     ./mill blog.runMain blog.makeSite
 
 # (maintainers) Copy the built blog into DEST, a checkout of the site (adds and replaces files only)
