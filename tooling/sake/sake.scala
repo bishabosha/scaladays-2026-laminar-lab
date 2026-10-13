@@ -285,7 +285,10 @@ class Runner(file: Sakefile, dryRun: Boolean):
       case _ =>
         val argv = Platform.argv(command, args, cwd)
         if dryRun then { note(s"  runs ${argv.mkString(" ")}  (in $cwd)"); return }
-        val code = ProcessBuilder(argv.asJava).directory(cwd.toFile).inheritIO().start().waitFor()
+        val process = ProcessBuilder(argv.asJava).directory(cwd.toFile).inheritIO().start()
+        // Not waitFor(): on Scala Native (0.5) it spins a core until the command exits.
+        while process.isAlive do Thread.sleep(50)
+        val code = process.exitValue
         if code != 0 then throw SakeError(s"$command exited with code $code", code)
 
   /** `a/b/name_*`: what the pattern in the last part of a path names (`*` any run, `?` one
