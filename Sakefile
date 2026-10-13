@@ -35,6 +35,10 @@ ex EX VARIANT="start":
     serve exercises {{exercises_port}} /?ex={{EX}}
     scala-cli --power package exercises/project.scala apothecary exercises/entry exercises/{{EX}}/{{VARIANT}} -o exercises/out/{{EX}}/main.js -f --watch
 
+setup-ex EX VARIANT="start":
+    @mkdir exercises/out/{{EX}}
+    scala-cli --power setup-ide exercises/project.scala apothecary exercises/entry exercises/{{EX}}/{{VARIANT}}
+
 # Build an exercise once, without serving it
 ex-build EX VARIANT="start":
     @mkdir exercises/out/{{EX}}
